@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom utilities inspired by TailAdmin */
+@layer utilities {
+    .menu-item {
+        @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-sm;
+    }
+
+    .menu-item-active {
+        @apply bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400;
+    }
+
+    .menu-item-inactive {
+        @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+    }
+
+    .menu-item-icon-active {
+        @apply text-blue-600 dark:text-blue-400;
+    }
+
+    .menu-item-icon-inactive {
+        @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+    }
+
+    .menu-item-text {
+        @apply truncate;
+    }
+
+    .sidebar-logo-text {
+        @apply truncate;
+    }
+
+    .menu-dropdown-item {
+        @apply relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium;
+    }
+
+    .menu-dropdown-item-active {
+        @apply bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400;
+    }
+
+    .menu-dropdown-item-inactive {
+        @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+    }
+}
