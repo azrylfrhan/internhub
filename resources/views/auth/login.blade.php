@@ -23,7 +23,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-gray-900">Anak Magang</h3>
-                    <p class="text-sm text-gray-600">Untuk peserta program magang BPS</p>
+                    <p class="text-sm text-gray-600">Untuk peserta program InternHub</p>
                 </div>
             </div>
 

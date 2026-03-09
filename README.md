@@ -7,13 +7,13 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-# BPS Magang - Sistem Presensi dan Logbook
+# InternHub - Sistem Presensi dan Logbook
 
-Aplikasi untuk mengelola presensi dan logbook peserta magang BPS dengan fitur geolocation dan dark mode.
+Aplikasi untuk mengelola presensi dan logbook peserta InternHub dengan fitur geolocation dan dark mode.
 
 ## Fitur Utama
 
--   ✅ **Presensi GPS-based** - Validasi lokasi kantor BPS
+-   ✅ **Presensi GPS-based** - Validasi lokasi kantor
 -   ✅ **Auto Checkout** - Sistem otomatis checkout di 23:59 WITA
 -   ✅ **Logbook Aktivitas** - Pencatatan kegiatan harian
 -   ✅ **Dark Mode** - Light/Dark/System theme

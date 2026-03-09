@@ -3,9 +3,9 @@
     <div class="flex items-center justify-between p-4 border-b border-gray-200">
         <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
-                <img src="/logo-bps.png" alt="Logo BPS" class="h-8 w-auto" loading="lazy" style="max-width:32px;max-height:32px;object-fit:contain;" />
+                <img src="/logo-bps.png" alt="Logo InternHub" class="h-8 w-auto" loading="lazy" style="max-width:32px;max-height:32px;object-fit:contain;" />
             </div>
-            <span class="sidebar-logo-text text-xl font-bold text-gray-800">BPS Magang</span>
+            <span class="sidebar-logo-text text-xl font-bold text-gray-800">InternHub</span>
         </div>
         <!-- Toggle button for collapsed sidebar (desktop only) -->
         <button onclick="toggleSidebar()" class="sidebar-toggle-button hidden lg:flex lg:w-20 lg:justify-center p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">

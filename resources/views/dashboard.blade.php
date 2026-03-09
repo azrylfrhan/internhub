@@ -6,7 +6,7 @@
 <!-- Welcome Section -->
 <div class="mb-8">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Selamat Datang, {{ Auth::user()->name }}</h1>
-    <p class="text-gray-600 dark:text-gray-400">Pantau aktivitas magang dan kelola sistem BPS Magang</p>
+    <p class="text-gray-600 dark:text-gray-400">Pantau aktivitas magang dan kelola sistem InternHub</p>
 </div>
 
 <!-- Key Metrics -->

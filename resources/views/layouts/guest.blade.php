@@ -6,7 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
-        <title>@yield('title', 'BPS Magang')</title>
+        <title>@yield('title', 'InternHub')</title>
         <link rel="icon" type="image/png" href="/logo-bps.png" />
 
         <!-- Fonts -->

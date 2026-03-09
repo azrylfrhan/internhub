@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'BPS Magang')</title>
+    <title>@yield('title', 'InternHub')</title>
     <link rel="icon" type="image/png" href="/logo-bps.png" />
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -33,8 +33,10 @@
             @include('layouts.partials.header')
 
                 <!-- Page Content -->
-            <main id="main-content" class="flex-1 p-4 md:p-6 lg:p-8 transition-all duration-300 ease-in-out">
-                @yield('content')
+            <main id="main-content" class="flex-1 py-4 md:py-6 lg:py-8 transition-all duration-300 ease-in-out">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    @yield('content')
+                </div>
             </main>
         </div>
     </div>

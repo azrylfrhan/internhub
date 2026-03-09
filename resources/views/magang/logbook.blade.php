@@ -54,9 +54,8 @@
 </div>
 
 <!-- Add/Edit Logbook Modal -->
-<div id="logbookModal" class="hidden fixed inset-0 bg-black bg-opacity-0 z-50 transition-all duration-300 ease-out">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div id="logbookModalContent" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full max-h-96 overflow-y-auto transform scale-95 opacity-0 transition-all duration-300 ease-out">
+<div id="logbookModal" class="hidden fixed inset-0 px-4 bg-black bg-opacity-0 z-50 transition-all duration-300 ease-out items-center justify-center">
+    <div id="logbookModalContent" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg w-[90%] sm:w-full sm:max-w-lg md:max-w-2xl max-h-[80vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-300 ease-out">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Tambah Logbook</h3>
@@ -104,7 +103,6 @@
                 </div>
             </form>
         </div>
-    </div>
 </div>
 
 <script>
@@ -132,6 +130,7 @@ function showAddLogbookForm() {
     
     // Show modal with animation
     modal.classList.remove('hidden');
+    modal.classList.add('flex');
     
     // Trigger animation after a brief delay to ensure CSS transition works
     requestAnimationFrame(() => {
@@ -156,6 +155,7 @@ function closeLogbookModal() {
     
     // Hide after animation completes
     setTimeout(() => {
+        modal.classList.remove('flex');
         modal.classList.add('hidden');
     }, 300);
 }

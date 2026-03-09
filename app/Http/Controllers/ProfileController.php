@@ -6,7 +6,9 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -56,5 +58,57 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Update profile for magang user (email only).
+     */
+    public function updateMagang(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+        ]);
+
+        $user->email = $validated['email'];
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        return back()->with('success', 'Email profil berhasil diperbarui.');
+    }
+
+    /**
+     * Update password for magang user.
+     */
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'string'],
+            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'Password lama tidak sesuai.',
+            ]);
+        }
+
+        $user->password = Hash::make($validated['new_password']);
+        $user->save();
+
+        return back()->with('success', 'Password berhasil diperbarui.');
     }
 }

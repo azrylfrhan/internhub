@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <img src="/logo-bps.png" alt="Logo BPS" class="h-9 w-auto" loading="lazy" style="max-width:40px;max-height:40px;object-fit:contain;" />
+                        <img src="/logo-bps.png" alt="Logo InternHub" class="h-9 w-auto" loading="lazy" style="max-width:40px;max-height:40px;object-fit:contain;" />
                     </a>
                 </div>
 

@@ -61,6 +61,8 @@ Route::middleware(['auth', 'verified', 'role:magang'])->group(function () {
     Route::get('/magang/profile', function () {
         return view('magang.profile');
     })->name('magang.profile');
+    Route::patch('/magang/profile', [ProfileController::class, 'updateMagang'])->name('magang.profile.update');
+    Route::put('/magang/profile/password', [ProfileController::class, 'updatePassword'])->name('magang.profile.password.update');
 });
 
 // Presensi routes - Available to authenticated users

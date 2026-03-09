@@ -39,11 +39,6 @@
             <div id="attendance-buttons" class="space-y-4">
                 <!-- Tombol akan diupdate oleh JavaScript -->
             </div>
-            <div class="mt-2 flex justify-end">
-                @if(app()->environment('local'))
-                <button type="button" id="btn-use-office-location" class="text-xs px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-blue-200 dark:hover:bg-blue-900 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 transition-colors">Gunakan Lokasi Kantor (Mode Test)</button>
-                @endif
-            </div>
         </div>
     </div>
 
@@ -195,9 +190,9 @@
     </div>
 
     <!-- Modal Detail Absensi -->
-    <div id="modal-detail-absensi" class="fixed inset-0 bg-black bg-opacity-0 hidden flex items-end md:items-center justify-center z-50 p-4 pb-20 md:pb-4 transition-all duration-300 ease-out">
-        <div id="modal-detail-content" class="bg-white dark:bg-gray-800 rounded-t-2xl md:rounded-xl shadow-2xl max-w-md w-full md:max-h-[80vh] overflow-y-auto transform translate-y-full md:translate-y-0 md:scale-95 md:opacity-0 transition-all duration-300 ease-out">
-            <div class="sticky top-0 bg-white dark:bg-gray-800 p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-2xl md:rounded-t-xl">
+    <div id="modal-detail-absensi" class="fixed inset-0 px-4 bg-black bg-opacity-0 hidden items-center justify-center z-50 transition-all duration-300 ease-out">
+        <div id="modal-detail-content" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-[90%] sm:w-full sm:max-w-lg md:max-w-2xl md:max-h-[80vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-300 ease-out">
+            <div class="sticky top-0 bg-white dark:bg-gray-800 p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-2xl">
                 <h3 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white" id="modal-tanggal">Tanggal</h3>
                 <button type="button" onclick="closeModalDetail()" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -619,14 +614,15 @@ async function openModalDetail(dateStr) {
     
     // Show modal instantly with loading state
     modal.classList.remove('hidden');
+    modal.classList.add('flex');
     
     // Trigger animation
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             modal.classList.remove('bg-opacity-0');
             modal.classList.add('bg-opacity-50');
-            modalContent.classList.remove('translate-y-full', 'md:scale-95', 'md:opacity-0');
-            modalContent.classList.add('translate-y-0', 'md:scale-100', 'md:opacity-100');
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
         });
     });
     
@@ -731,10 +727,11 @@ function closeModalDetail() {
     
     modal.classList.remove('bg-opacity-50');
     modal.classList.add('bg-opacity-0');
-    modalContent.classList.remove('translate-y-0', 'md:scale-100', 'md:opacity-100');
-    modalContent.classList.add('translate-y-full', 'md:scale-95', 'md:opacity-0');
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
     
     setTimeout(() => {
+        modal.classList.remove('flex');
         modal.classList.add('hidden');
     }, 300);
 }
