@@ -95,6 +95,23 @@
         </div>
     </div>
 
+    <div class="px-4 pb-4 md:px-6">
+        <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p id="logbook-pagination-info" class="text-xs text-gray-500 dark:text-gray-400">Menampilkan 0 data</p>
+            <div class="flex items-center gap-2">
+                <label for="logbook-page-size" class="text-xs text-gray-600 dark:text-gray-300">Per halaman</label>
+                <select id="logbook-page-size" onchange="changeLogbookPageSize(this.value)" class="rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+                <button id="logbook-page-prev" onclick="changeLogbookPage(-1)" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" disabled>Sebelumnya</button>
+                <span id="logbook-page-indicator" class="text-xs text-gray-600 dark:text-gray-300">Hal. 1 / 1</span>
+                <button id="logbook-page-next" onclick="changeLogbookPage(1)" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" disabled>Berikutnya</button>
+            </div>
+        </div>
+    </div>
+
 <!-- Detail Modal -->
 <div id="detailModal" class="hidden fixed inset-0 z-50 bg-black/50 p-4 items-center justify-center">
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg w-[90%] sm:w-full sm:max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -114,6 +131,9 @@
 
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+let logbookRows = [];
+let logbookCurrentPage = 1;
+let logbookPageSize = 10;
 
 // Load logbook on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -168,9 +188,16 @@ function resetLogbookFilter() {
 }
 
 function renderLogbookTable(rows) {
+    logbookRows = rows || [];
+    logbookCurrentPage = 1;
+
+    renderLogbookPage();
+}
+
+function renderLogbookPage() {
     const tbody = document.getElementById('logbookTableBody');
-    
-    if (rows.length === 0) {
+
+    if (logbookRows.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="5" class="px-3 md:px-6 py-8 text-center text-gray-500 dark:text-gray-400">
@@ -178,8 +205,16 @@ function renderLogbookTable(rows) {
                 </td>
             </tr>
         `;
+        updateLogbookPaginationInfo();
         return;
     }
+
+    const totalPages = Math.max(1, Math.ceil(logbookRows.length / logbookPageSize));
+    if (logbookCurrentPage > totalPages) logbookCurrentPage = totalPages;
+
+    const start = (logbookCurrentPage - 1) * logbookPageSize;
+    const end = start + logbookPageSize;
+    const rows = logbookRows.slice(start, end);
 
     let html = '';
     rows.forEach(row => {
@@ -210,6 +245,38 @@ function renderLogbookTable(rows) {
     });
 
     tbody.innerHTML = html;
+    updateLogbookPaginationInfo();
+}
+
+function updateLogbookPaginationInfo() {
+    const total = logbookRows.length;
+    const totalPages = Math.max(1, Math.ceil(total / logbookPageSize));
+    const start = total === 0 ? 0 : ((logbookCurrentPage - 1) * logbookPageSize) + 1;
+    const end = Math.min(logbookCurrentPage * logbookPageSize, total);
+
+    document.getElementById('logbook-pagination-info').textContent = total === 0
+        ? 'Menampilkan 0 data'
+        : `Menampilkan ${start}-${end} dari ${total} data`;
+
+    document.getElementById('logbook-page-indicator').textContent = `Hal. ${logbookCurrentPage} / ${totalPages}`;
+    document.getElementById('logbook-page-prev').disabled = logbookCurrentPage <= 1 || total === 0;
+    document.getElementById('logbook-page-next').disabled = logbookCurrentPage >= totalPages || total === 0;
+}
+
+function changeLogbookPage(delta) {
+    const totalPages = Math.max(1, Math.ceil(logbookRows.length / logbookPageSize));
+    const nextPage = logbookCurrentPage + delta;
+    if (nextPage < 1 || nextPage > totalPages) return;
+    logbookCurrentPage = nextPage;
+    renderLogbookPage();
+}
+
+function changeLogbookPageSize(value) {
+    const nextSize = Number(value);
+    if (![10, 25, 50].includes(nextSize)) return;
+    logbookPageSize = nextSize;
+    logbookCurrentPage = 1;
+    renderLogbookPage();
 }
 
 async function openDetailModal(logbookId) {

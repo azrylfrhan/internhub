@@ -5,7 +5,7 @@
 @section('content')
 <div
     x-data="{
-        editModal: @js($errors->has('email')),
+        editModal: @js($errors->has('email') || $errors->has('nomor_telepon') || $errors->has('alamat') || $errors->has('instansi')),
         passwordModal: @js($errors->has('current_password') || $errors->has('new_password')),
         showCurrentPassword: false,
         showNewPassword: false,
@@ -48,20 +48,50 @@
 
             <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
                 <div>
+                    <p class="font-medium text-gray-900 dark:text-white">No. Telepon</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Nomor telepon yang bisa dihubungi</p>
+                </div>
+                <p class="text-gray-900 dark:text-gray-200">{{ Auth::user()->nomor_telepon ?: '-' }}</p>
+            </div>
+
+            <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                <div>
+                    <p class="font-medium text-gray-900 dark:text-white">Kampus / Instansi</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Asal kampus atau instansi magang</p>
+                </div>
+                <p class="text-gray-900 dark:text-gray-200">{{ Auth::user()->instansi ?: '-' }}</p>
+            </div>
+
+            <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                <div>
+                    <p class="font-medium text-gray-900 dark:text-white">Alamat</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Alamat domisili peserta</p>
+                </div>
+                <p class="max-w-[55%] text-right text-gray-900 dark:text-gray-200">{{ Auth::user()->alamat ?: '-' }}</p>
+            </div>
+
+            <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                <div>
+                    <p class="font-medium text-gray-900 dark:text-white">Durasi Magang</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Periode magang yang terdaftar</p>
+                </div>
+                <p class="text-gray-900 dark:text-gray-200">
+                    @if(Auth::user()->tanggal_mulai && Auth::user()->tanggal_selesai)
+                        {{ Auth::user()->tanggal_mulai->locale('id')->isoFormat('D MMM YYYY') }} - {{ Auth::user()->tanggal_selesai->locale('id')->isoFormat('D MMM YYYY') }}
+                    @else
+                        -
+                    @endif
+                </p>
+            </div>
+
+            <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                <div>
                     <p class="font-medium text-gray-900 dark:text-white">Role</p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Jenis akun Anda</p>
                 </div>
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                     Anak Magang
                 </span>
-            </div>
-
-            <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
-                <div>
-                    <p class="font-medium text-gray-900 dark:text-white">Bergabung Sejak</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Tanggal pendaftaran</p>
-                </div>
-                <p class="text-gray-900 dark:text-gray-200">{{ Auth::user()->created_at->locale('id')->isoFormat('D MMMM YYYY') }}</p>
             </div>
         </div>
     </div>
@@ -162,6 +192,30 @@
                     <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                     <input id="email" name="email" type="email" value="{{ old('email', Auth::user()->email) }}" required class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     @error('email')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="nomor_telepon" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">No. Telepon</label>
+                    <input id="nomor_telepon" name="nomor_telepon" type="text" value="{{ old('nomor_telepon', Auth::user()->nomor_telepon) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    @error('nomor_telepon')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="instansi" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kampus / Instansi</label>
+                    <input id="instansi" name="instansi" type="text" value="{{ old('instansi', Auth::user()->instansi) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    @error('instansi')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="alamat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alamat</label>
+                    <textarea id="alamat" name="alamat" rows="3" class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('alamat', Auth::user()->alamat) }}</textarea>
+                    @error('alamat')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                     @enderror
                 </div>

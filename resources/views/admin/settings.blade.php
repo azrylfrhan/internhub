@@ -8,7 +8,7 @@
     <p class="text-sm text-gray-600 dark:text-gray-300">Kelola jam kerja rutin, jam kerja khusus per tanggal, serta koordinat lokasi kantor.</p>
 </div>
 
-<div x-data="{ tab: 'rutin' }" class="space-y-6">
+<div x-data="{ tab: '{{ request('tab', 'rutin') }}' }" class="space-y-6">
     <div class="rounded-2xl border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div class="grid grid-cols-1 gap-2 md:grid-cols-3">
             <button @click="tab = 'rutin'" :class="tab === 'rutin' ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'" class="rounded-xl px-4 py-2.5 text-sm font-semibold transition">Jam Kerja Rutin</button>
@@ -69,7 +69,7 @@
         </div>
 
         <div class="space-y-6 px-6 py-6">
-            <form action="{{ route('admin.settings.custom-working-days.store') }}" method="POST" class="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700 md:grid-cols-2">
+            <form action="{{ route('admin.settings.custom-working-days.store') . '?tab=khusus' }}" method="POST" class="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700 md:grid-cols-2">
                 @csrf
                 <div>
                     <label for="tanggal_mulai" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai</label>
@@ -115,7 +115,7 @@
                                 <td class="px-4 py-3 text-gray-700 dark:text-gray-200">{{ \Illuminate\Support\Str::substr($custom->jam_masuk, 0, 5) }} - {{ \Illuminate\Support\Str::substr($custom->jam_pulang, 0, 5) }}</td>
                                 <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ $custom->keterangan ?: '-' }}</td>
                                 <td class="px-4 py-3">
-                                    <form action="{{ route('admin.settings.custom-working-days.destroy', $custom) }}" method="POST" onsubmit="return confirm('Hapus jam kerja khusus ini?')">
+                                    <form action="{{ route('admin.settings.custom-working-days.destroy', $custom) . '?tab=khusus' }}" method="POST" onsubmit="return confirm('Hapus jam kerja khusus ini?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50">Hapus</button>
@@ -129,6 +129,19 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <form method="GET" action="{{ route('admin.settings.index') }}" class="flex items-center gap-2">
+                    <input type="hidden" name="tab" value="khusus">
+                    <label for="khususPerPage" class="text-xs text-gray-600 dark:text-gray-300">Per halaman</label>
+                    <select id="khususPerPage" name="khusus_per_page" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-2.5 py-1 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        @foreach($allowedPerPage as $size)
+                            <option value="{{ $size }}" {{ $khususPerPage === $size ? 'selected' : '' }}>{{ $size }}</option>
+                        @endforeach
+                    </select>
+                </form>
+                {{ $customWorkingDays->appends(['tab' => 'khusus', 'khusus_per_page' => $khususPerPage])->links() }}
             </div>
         </div>
     </div>

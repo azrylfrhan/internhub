@@ -28,26 +28,30 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-14 items-center">
                 <div>
                     <p class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700 mb-4">
-                        Sistem Presensi dan Logbook
+                        Program Magang BPS Provinsi Sulawesi Utara
                     </p>
                     <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight text-slate-900">
-                        Selamat Datang di InternHub
+                        Presensi Anak Magang BPS Provinsi Sulawesi Utara
                     </h1>
                     <p class="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">
-                        Platform resmi untuk pengelolaan presensi dan logbook peserta magang secara akurat, transparan, dan responsif untuk kebutuhan instansi.
+                        Halaman ini digunakan untuk mendukung kedisiplinan dan pelaporan kegiatan peserta magang selama menjalankan penugasan di Badan Pusat Statistik Provinsi Sulawesi Utara.
                     </p>
 
                     <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
                         <a href="{{ route('magang.login') }}" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white hover:bg-blue-700 transition shadow-sm min-h-[48px]">
-                            Mulai Sebagai Peserta Magang
+                            Masuk Sebagai Peserta Magang
                         </a>
                         <a href="{{ route('admin.login') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 hover:bg-slate-100 transition min-h-[48px]">
-                            Masuk Panel Admin
+                            Masuk Sebagai Admin/Mentor
                         </a>
                     </div>
                 </div>
 
                 <div>
+                    <div class="mb-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                        <img src="/images/peta-sulawesi-utara.svg" alt="Peta Sulawesi Utara" class="h-auto w-full rounded-xl" loading="lazy" />
+                    </div>
+
                     <div class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xl">
                         <div class="flex items-center gap-4 mb-6">
                             <div class="h-14 w-14 rounded-xl bg-blue-100 flex items-center justify-center">
@@ -55,22 +59,22 @@
                             </div>
                             <div>
                                 <h2 class="text-xl font-bold text-slate-900">InternHub</h2>
-                                <p class="text-sm text-slate-500">Presensi berbasis lokasi dan logbook harian</p>
+                                <p class="text-sm text-slate-500">Pendampingan kegiatan magang di lingkungan BPS Sulut</p>
                             </div>
                         </div>
 
                         <div class="space-y-3 text-sm sm:text-base text-slate-700">
                             <div class="flex items-start gap-3">
                                 <span class="mt-1 h-2.5 w-2.5 rounded-full bg-blue-500"></span>
-                                <p>Validasi presensi berbasis geolokasi.</p>
+                                <p>Memudahkan peserta magang mencatat kehadiran harian secara tertib.</p>
                             </div>
                             <div class="flex items-start gap-3">
                                 <span class="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                                <p>Pencatatan aktivitas magang yang terstruktur.</p>
+                                <p>Membantu peserta menyusun laporan aktivitas magang dengan rapi.</p>
                             </div>
                             <div class="flex items-start gap-3">
                                 <span class="mt-1 h-2.5 w-2.5 rounded-full bg-amber-500"></span>
-                                <p>Pemantauan progres peserta secara real-time.</p>
+                                <p>Mendukung pembimbing dalam memantau perkembangan peserta magang.</p>
                             </div>
                         </div>
                     </div>
@@ -81,7 +85,7 @@
 
     <footer class="w-full border-t border-slate-200 bg-white">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-5 text-sm text-slate-500">
-            © {{ date('Y') }} InternHub. Semua hak dilindungi.
+            © {{ date('Y') }} InternHub - Badan Pusat Statistik Provinsi Sulawesi Utara.
         </div>
     </footer>
 

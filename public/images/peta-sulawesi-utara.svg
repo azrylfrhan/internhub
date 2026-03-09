@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="title desc">
+  <title id="title">Ilustrasi peta Sulawesi Utara</title>
+  <desc id="desc">Ilustrasi sederhana wilayah Sulawesi Utara dengan penanda titik Manado.</desc>
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="100%" stop-color="#bfdbfe"/>
+    </linearGradient>
+    <linearGradient id="land" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="800" height="420" rx="24" fill="url(#sea)"/>
+
+  <path
+    d="M120 235
+       L170 210 L225 200 L276 173 L310 132 L358 122 L404 140 L430 172
+       L472 177 L508 160 L548 165 L578 191 L560 223 L521 240 L492 271
+       L451 280 L419 300 L389 329 L350 336 L322 306 L292 282 L262 286
+       L232 313 L198 303 L170 279 L142 274 L119 251 Z"
+    fill="url(#land)"
+    stroke="#1e40af"
+    stroke-width="6"
+    stroke-linejoin="round"
+  />
+
+  <circle cx="458" cy="214" r="9" fill="#ef4444" stroke="#ffffff" stroke-width="3"/>
+  <text x="475" y="219" font-size="20" font-family="Arial, sans-serif" fill="#0f172a" font-weight="700">Manado</text>
+
+  <text x="24" y="42" font-size="22" font-family="Arial, sans-serif" fill="#0f172a" font-weight="700">Sulawesi Utara</text>
+</svg>

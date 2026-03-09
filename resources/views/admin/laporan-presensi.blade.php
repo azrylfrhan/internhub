@@ -3,29 +3,26 @@
 @section('title', 'Laporan Presensi')
 
 @section('content')
-<div class="mb-6">
-    <div class="flex items-center gap-2 text-sm text-gray-600 mb-4">
-        <a href="{{ route('dashboard') }}" class="hover:text-blue-600">Dashboard</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-        <span>Laporan Presensi</span>
-    </div>
-    <h1 class="text-2xl font-bold text-gray-900">Laporan Presensi</h1>
+<div class="mx-auto w-full  space-y-6">
+<div>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Laporan Presensi</h1>
+    <p class="text-gray-600 dark:text-gray-300">Lihat dan cetak laporan presensi peserta magang.</p>
 </div>
 
-<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4">Filter</h3>
+<div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800 md:p-6">
+    <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Filter</h3>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
-            <label class="text-sm text-gray-700">Tanggal Mulai</label>
-            <input type="date" id="start_date" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg" />
+            <label class="text-sm text-gray-700 dark:text-gray-300">Tanggal Mulai</label>
+            <input type="date" id="start_date" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-500/30" />
         </div>
         <div>
-            <label class="text-sm text-gray-700">Tanggal Selesai</label>
-            <input type="date" id="end_date" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg" />
+            <label class="text-sm text-gray-700 dark:text-gray-300">Tanggal Selesai</label>
+            <input type="date" id="end_date" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-500/30" />
         </div>
         <div>
-            <label class="text-sm text-gray-700">Status</label>
-            <select id="status" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg">
+            <label class="text-sm text-gray-700 dark:text-gray-300">Status</label>
+            <select id="status" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-500/30">
                 <option value="">Semua</option>
                 <option value="hadir">Hadir</option>
                 <option value="terlambat">Terlambat</option>
@@ -34,8 +31,8 @@
             </select>
         </div>
         <div>
-            <label class="text-sm text-gray-700">Peserta</label>
-            <select id="user_id" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg">
+            <label class="text-sm text-gray-700 dark:text-gray-300">Peserta</label>
+            <select id="user_id" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-500/30">
                 <option value="">Semua</option>
                 @foreach(\App\Models\User::where('role', 'magang')->orderBy('name')->get() as $user)
                     <option value="{{ $user->id }}">{{ $user->name }}</option>
@@ -44,31 +41,31 @@
         </div>
     </div>
     <div class="mt-4 flex items-center gap-3">
-        <button id="btn-apply" onclick="applyFilter()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Terapkan</button>
-        <button id="btn-csv" onclick="exportCsv()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Export CSV</button>
-        <button id="btn-print" onclick="exportPrint()" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">Export PDF</button>
+        <button id="btn-apply" onclick="applyFilter()" class="rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700">Terapkan</button>
+        <button id="btn-csv" onclick="exportCsv()" class="rounded-lg bg-green-600 px-4 py-2 text-white transition hover:bg-green-700">Export CSV</button>
+        <button id="btn-print" onclick="exportPrint()" class="rounded-lg bg-orange-600 px-4 py-2 text-white transition hover:bg-orange-700">Export PDF</button>
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <div class="bg-white p-4 rounded-xl border border-gray-200">
-        <p class="text-sm text-gray-600">Total</p>
-        <p id="stat-total" class="text-2xl font-semibold">-</p>
+<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-sm text-gray-600 dark:text-gray-300">Total</p>
+        <p id="stat-total" class="text-2xl font-semibold text-gray-900 dark:text-white">-</p>
     </div>
-    <div class="bg-white p-4 rounded-xl border border-gray-200">
-        <p class="text-sm text-gray-600">Hadir</p>
+    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-sm text-gray-600 dark:text-gray-300">Hadir</p>
         <p id="stat-hadir" class="text-2xl font-semibold text-green-700">-</p>
     </div>
-    <div class="bg-white p-4 rounded-xl border border-gray-200">
-        <p class="text-sm text-gray-600">Terlambat</p>
+    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-sm text-gray-600 dark:text-gray-300">Terlambat</p>
         <p id="stat-terlambat" class="text-2xl font-semibold text-orange-700">-</p>
     </div>
 </div>
 
-<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+<div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800 md:p-6">
     <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Data Presensi</h3>
-        <p id="range-label" class="text-sm text-gray-500"></p>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Data Presensi</h3>
+        <p id="range-label" class="text-sm text-gray-500 dark:text-gray-400"></p>
     </div>
     <div class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="overflow-x-auto" style="-webkit-overflow-scrolling: touch;">
@@ -91,6 +88,21 @@
         </table>
         </div>
     </div>
+
+    <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p id="pagination-info" class="text-xs text-gray-500 dark:text-gray-400">Menampilkan 0 data</p>
+        <div class="flex items-center gap-2">
+            <label for="page-size" class="text-xs text-gray-600 dark:text-gray-300">Per halaman</label>
+            <select id="page-size" onchange="changePageSize(this.value)" class="rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+            <button id="page-prev" onclick="changePage(-1)" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" disabled>Sebelumnya</button>
+            <span id="page-indicator" class="text-xs text-gray-600 dark:text-gray-300">Hal. 1 / 1</span>
+            <button id="page-next" onclick="changePage(1)" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" disabled>Berikutnya</button>
+        </div>
+    </div>
 </div>
 
 <!-- Global Loading Overlay -->
@@ -106,6 +118,10 @@
 </div>
 
 <script>
+let currentPage = 1;
+let pageSize = 10;
+let currentRows = [];
+
 function showGlobalLoading(text = 'Memuat...') {
     document.getElementById('global-loading-text').textContent = text;
     document.getElementById('global-loading').classList.remove('hidden');
@@ -166,27 +182,75 @@ async function applyFilter() {
     document.getElementById('stat-terlambat').textContent = data.stat.terlambat;
     document.getElementById('range-label').textContent = `${data.range.start} s/d ${data.range.end}`;
 
-    tbody.innerHTML = '';
-    if (!data.rows.length) {
+    currentRows = data.rows || [];
+    currentPage = 1;
+    renderCurrentPage();
+
+    btnApply.disabled = false; btnCsv.disabled = false; btnPrint.disabled = false; btnApply.textContent = prevText;
+}
+
+function renderCurrentPage() {
+    const tbody = document.getElementById('data-body');
+
+    if (!currentRows.length) {
         tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">Tidak ada data</td></tr>';
-        btnApply.disabled = false; btnCsv.disabled = false; btnPrint.disabled = false; btnApply.textContent = prevText;
+        updatePaginationInfo();
         return;
     }
-    for (const r of data.rows) {
+
+    const totalPages = Math.max(1, Math.ceil(currentRows.length / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const rows = currentRows.slice(start, end);
+
+    tbody.innerHTML = '';
+    for (const r of rows) {
         const tr = document.createElement('tr');
         tr.className = 'odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700/40 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-colors';
         tr.innerHTML = `
-            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.tanggal}</td>
-            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.nama}</td>
-            <td class="px-4 py-2 text-gray-600 dark:text-gray-300">${r.email}</td>
-            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.status}</td>
-            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.jam_masuk ?? ''}</td>
-            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.jam_pulang ?? ''}</td>
+            <td class="px-3 py-2 text-gray-900 dark:text-gray-100 md:px-4">${r.tanggal}</td>
+            <td class="px-3 py-2 text-gray-900 dark:text-gray-100 md:px-4">${r.nama}</td>
+            <td class="hidden px-3 py-2 text-gray-600 dark:text-gray-300 md:table-cell md:px-4">${r.email}</td>
+            <td class="px-3 py-2 text-gray-900 dark:text-gray-100 md:px-4">${r.status}</td>
+            <td class="px-3 py-2 text-gray-900 dark:text-gray-100 md:px-4">${r.jam_masuk ?? ''}</td>
+            <td class="hidden px-3 py-2 text-gray-900 dark:text-gray-100 lg:table-cell md:px-4">${r.jam_pulang ?? ''}</td>
         `;
         tbody.appendChild(tr);
     }
 
-    btnApply.disabled = false; btnCsv.disabled = false; btnPrint.disabled = false; btnApply.textContent = prevText;
+    updatePaginationInfo();
+}
+
+function updatePaginationInfo() {
+    const total = currentRows.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const start = total === 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+    const end = Math.min(currentPage * pageSize, total);
+
+    document.getElementById('pagination-info').textContent = total === 0
+        ? 'Menampilkan 0 data'
+        : `Menampilkan ${start}-${end} dari ${total} data`;
+    document.getElementById('page-indicator').textContent = `Hal. ${currentPage} / ${totalPages}`;
+    document.getElementById('page-prev').disabled = currentPage <= 1 || total === 0;
+    document.getElementById('page-next').disabled = currentPage >= totalPages || total === 0;
+}
+
+function changePage(delta) {
+    const totalPages = Math.max(1, Math.ceil(currentRows.length / pageSize));
+    const nextPage = currentPage + delta;
+    if (nextPage < 1 || nextPage > totalPages) return;
+    currentPage = nextPage;
+    renderCurrentPage();
+}
+
+function changePageSize(value) {
+    const nextSize = Number(value);
+    if (![10, 25, 50].includes(nextSize)) return;
+    pageSize = nextSize;
+    currentPage = 1;
+    renderCurrentPage();
 }
 
 function exportCsv() {
@@ -203,4 +267,5 @@ function exportPrint() {
     window.open(`/admin/laporan/presensi/export/print?${qs}`, '_blank');
 }
 </script>
+</div>
 @endsection

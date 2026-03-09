@@ -18,17 +18,81 @@
     <h1 class="text-2xl font-bold text-gray-900">Kalender Absensi Peserta</h1>
 </div>
 
+@php
+    $totalHadirPeserta = \App\Models\Presensi::where('user_id', $user->id)
+        ->whereMonth('tanggal', now()->month)
+        ->whereYear('tanggal', now()->year)
+        ->whereIn('status', ['hadir', 'terlambat'])
+        ->count();
+
+    $totalIzinAlpaPeserta = \App\Models\Presensi::where('user_id', $user->id)
+        ->whereMonth('tanggal', now()->month)
+        ->whereYear('tanggal', now()->year)
+        ->whereIn('status', ['izin', 'alpa'])
+        ->count();
+
+    $totalLogbookPeserta = \App\Models\Logbook::where('user_id', $user->id)
+        ->whereMonth('tanggal', now()->month)
+        ->whereYear('tanggal', now()->year)
+        ->count();
+@endphp
+
 <!-- Info Peserta -->
 <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-    <div class="flex items-center gap-4">
-        <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+    <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div class="flex items-center gap-4">
+        <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center shrink-0">
             <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
         </div>
         <div>
             <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ $user->name }}</h2>
-            <p class="text-gray-600">{{ $user->email }}</p>
+            <p class="text-gray-600 dark:text-gray-300">{{ $user->email }}</p>
+            <div class="mt-2 inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/30 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300">
+                Peserta Magang InternHub
+            </div>
+        </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm w-full lg:max-w-3xl">
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Instansi / Kampus</p>
+                <p class="font-medium text-gray-900 dark:text-gray-100">{{ $user->instansi ?: '-' }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
+                <p class="text-xs text-gray-500 dark:text-gray-400">No. Telepon</p>
+                <p class="font-medium text-gray-900 dark:text-gray-100">{{ $user->nomor_telepon ?: '-' }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 sm:col-span-2 lg:col-span-1">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Durasi Magang</p>
+                <p class="font-medium text-gray-900 dark:text-gray-100">
+                    @if($user->tanggal_mulai && $user->tanggal_selesai)
+                        {{ \Carbon\Carbon::parse($user->tanggal_mulai)->format('d M Y') }} - {{ \Carbon\Carbon::parse($user->tanggal_selesai)->format('d M Y') }}
+                    @else
+                        -
+                    @endif
+                </p>
+            </div>
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 sm:col-span-2 lg:col-span-3">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Alamat</p>
+                <p class="font-medium text-gray-900 dark:text-gray-100">{{ $user->alamat ?: '-' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-4 py-3">
+            <p class="text-xs text-blue-700 dark:text-blue-300">Hadir Bulan Ini</p>
+            <p class="text-2xl font-bold text-blue-800 dark:text-blue-200">{{ $totalHadirPeserta }}</p>
+        </div>
+        <div class="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 px-4 py-3">
+            <p class="text-xs text-orange-700 dark:text-orange-300">Izin/Alpa Bulan Ini</p>
+            <p class="text-2xl font-bold text-orange-800 dark:text-orange-200">{{ $totalIzinAlpaPeserta }}</p>
+        </div>
+        <div class="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-3">
+            <p class="text-xs text-green-700 dark:text-green-300">Logbook Bulan Ini</p>
+            <p class="text-2xl font-bold text-green-800 dark:text-green-200">{{ $totalLogbookPeserta }}</p>
         </div>
     </div>
 </div>

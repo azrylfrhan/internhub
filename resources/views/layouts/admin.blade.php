@@ -25,13 +25,26 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="font-sans antialiased bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300" x-data="{ sidebarOpen: true }" x-init="sidebarOpen = window.innerWidth >= 1024">
-    <div class="min-h-screen w-full flex">
+<body class="font-sans antialiased bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <div
+        class="min-h-screen w-full flex"
+        x-data="{ sidebarExpanded: false, isMobile: false }"
+        x-init="
+            const syncScreen = () => {
+                isMobile = window.innerWidth < 768;
+                if (isMobile) {
+                    sidebarExpanded = false;
+                }
+            };
+            syncScreen();
+            window.addEventListener('resize', syncScreen);
+        "
+    >
         <!-- Sidebar -->
         @include('layouts.partials.sidebar')
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col transition-all duration-300" id="admin-main" :class="sidebarOpen ? 'lg:ml-72' : 'lg:ml-0'">
+        <div class="flex-1 flex flex-col transition-all duration-300" id="admin-main" :class="isMobile ? 'ml-0' : (sidebarExpanded ? 'ml-64' : 'ml-20')">
             <!-- Header -->
             @include('layouts.partials.header')
 
@@ -45,7 +58,7 @@
     </div>
 
     <!-- Backdrop for mobile -->
-    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-black/50 z-30 lg:hidden" @click="sidebarOpen = false"></div>
+    <div x-show="isMobile && sidebarExpanded" x-transition.opacity class="fixed inset-0 bg-black/50 z-30 md:hidden" @click="sidebarExpanded = false"></div>
 
     <!-- Global Content Loading Overlay -->
     <div id="adminLoadingOverlay" class="hidden fixed inset-0 bg-white/90 dark:bg-gray-900/90 z-50 backdrop-blur-sm">

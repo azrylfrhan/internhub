@@ -61,7 +61,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update profile for magang user (email only).
+     * Update profile for magang user.
      */
     public function updateMagang(Request $request): RedirectResponse
     {
@@ -75,9 +75,15 @@ class ProfileController extends Controller
                 'max:255',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
+            'nomor_telepon' => ['nullable', 'string', 'max:30'],
+            'alamat' => ['nullable', 'string', 'max:1000'],
+            'instansi' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user->email = $validated['email'];
+        $user->nomor_telepon = $validated['nomor_telepon'] ?? null;
+        $user->alamat = $validated['alamat'] ?? null;
+        $user->instansi = $validated['instansi'] ?? null;
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -85,7 +91,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return back()->with('success', 'Email profil berhasil diperbarui.');
+        return back()->with('success', 'Profil berhasil diperbarui.');
     }
 
     /**

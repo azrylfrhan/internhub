@@ -437,7 +437,7 @@ class PresensiController extends Controller
     {
         $user = \App\Models\User::find($userId);
 
-        if (!$user || $user->role !== 'magang') {
+        if (!$user || !in_array($user->role, ['magang', 'alumni'], true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Peserta tidak ditemukan'
@@ -485,7 +485,7 @@ class PresensiController extends Controller
      */
     public function showPesertaCalendar($userId)
     {
-        $user = \App\Models\User::where('role', 'magang')->find($userId);
+        $user = \App\Models\User::whereIn('role', ['magang', 'alumni'])->find($userId);
 
         if (!$user) {
             abort(404, 'Peserta tidak ditemukan');
@@ -837,7 +837,7 @@ class PresensiController extends Controller
     {
         $user = \App\Models\User::find($userId);
         
-        if (!$user || $user->role !== 'magang') {
+        if (!$user || !in_array($user->role, ['magang', 'alumni'], true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Peserta tidak ditemukan'

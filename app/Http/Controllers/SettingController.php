@@ -10,8 +10,14 @@ use Illuminate\View\View;
 
 class SettingController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $allowedPerPage = [10, 25, 50];
+        $khususPerPage = (int) $request->integer('khusus_per_page', 10);
+        if (!in_array($khususPerPage, $allowedPerPage, true)) {
+            $khususPerPage = 10;
+        }
+
         return view('admin.settings', [
             'settings' => [
                 'jam_masuk_senin_kamis' => Setting::getValue('jam_masuk_senin_kamis', '07:30'),
@@ -22,7 +28,11 @@ class SettingController extends Controller
                 'office_longitude' => Setting::getValue('office_longitude', '124.84542'),
                 'max_distance_meters' => Setting::getValue('max_distance_meters', '500'),
             ],
-            'customWorkingDays' => CustomWorkingDay::orderBy('tanggal_mulai')->get(),
+            'customWorkingDays' => CustomWorkingDay::orderByDesc('tanggal_mulai')
+                ->paginate($khususPerPage, ['*'], 'khusus_page')
+                ->withQueryString(),
+            'allowedPerPage' => $allowedPerPage,
+            'khususPerPage' => $khususPerPage,
         ]);
     }
 
