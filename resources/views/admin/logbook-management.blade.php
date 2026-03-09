@@ -5,17 +5,17 @@
 @section('content')
 <!-- Header -->
 <div class="mb-8">
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">Manajemen Logbook</h1>
-    <p class="text-gray-600">Lihat dan kelola logbook peserta magang</p>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Manajemen Logbook</h1>
+    <p class="text-gray-600 dark:text-gray-300">Lihat dan kelola logbook peserta magang</p>
 </div>
 
 <!-- Filters -->
-<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
+<div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <!-- Peserta Filter -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Peserta</label>
-            <select id="filterPeserta" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Peserta</label>
+            <select id="filterPeserta" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <option value="">Semua Peserta</option>
                 @foreach(\App\Models\User::where('role', 'magang')->get() as $user)
                 <option value="{{ $user->id }}">{{ $user->name }}</option>
@@ -25,20 +25,20 @@
 
         <!-- Tanggal Mulai -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
-            <input type="date" id="filterTanggalMulai" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Mulai</label>
+            <input type="date" id="filterTanggalMulai" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
 
         <!-- Tanggal Akhir -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Akhir</label>
-            <input type="date" id="filterTanggalAkhir" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Akhir</label>
+            <input type="date" id="filterTanggalAkhir" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
 
         <!-- Search -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Cari</label>
-            <input type="text" id="filterSearch" placeholder="Cari aktivitas..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cari</label>
+            <input type="text" id="filterSearch" placeholder="Cari aktivitas..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
         </div>
     </div>
 
@@ -47,7 +47,7 @@
         <button onclick="applyLogbookFilter()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
             Terapkan Filter
         </button>
-        <button onclick="resetLogbookFilter()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300">
+        <button onclick="resetLogbookFilter()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600">
             Reset
         </button>
     </div>
@@ -55,24 +55,24 @@
 
 <!-- Stats -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-        <p class="text-sm text-gray-600 mb-1">Total Logbook</p>
-        <p class="text-2xl font-bold text-gray-900" id="stat-total">-</p>
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">Total Logbook</p>
+        <p class="text-2xl font-bold text-gray-900 dark:text-white" id="stat-total">-</p>
     </div>
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-        <p class="text-sm text-gray-600 mb-1">Logbook Bulan Ini</p>
-        <p class="text-2xl font-bold text-gray-900">{{ \App\Models\Logbook::whereDate('created_at', '>=', now()->startOfMonth())->count() }}</p>
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">Logbook Bulan Ini</p>
+        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ \App\Models\Logbook::whereDate('created_at', '>=', now()->startOfMonth())->count() }}</p>
     </div>
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-        <p class="text-sm text-gray-600 mb-1">Peserta Aktif</p>
-        <p class="text-2xl font-bold text-gray-900">{{ \App\Models\User::where('role', 'magang')->whereHas('logbooks')->distinct()->count() }}</p>
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">Peserta Aktif</p>
+        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ \App\Models\User::where('role', 'magang')->whereHas('logbooks')->distinct()->count() }}</p>
     </div>
 </div>
 
 <!-- Table -->
 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
     <div class="overflow-x-auto pb-2" style="-webkit-overflow-scrolling: touch;">
-        <table class="min-w-max text-xs md:text-sm">
+        <table class="min-w-full text-xs md:text-sm">
             <thead class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                 <tr>
                     <th class="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Peserta</th>
@@ -94,13 +94,11 @@
         </table>
         </div>
     </div>
-</div>
 
 <!-- Detail Modal -->
-<div id="detailModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-    <div class="flex items-center justify-center h-full">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-            <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800">
+<div id="detailModal" class="hidden fixed inset-0 z-50 bg-black/50 p-4 items-center justify-center">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg w-[90%] sm:w-full sm:max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-800">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Detail Logbook</h3>
                 <button onclick="closeDetailModal()" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,11 +106,10 @@
                     </svg>
                 </button>
             </div>
-            <div id="modalContent" class="p-6 space-y-4 text-gray-900 dark:text-gray-200">
+            <div id="modalContent" class="px-6 py-4 space-y-4 text-gray-900 dark:text-gray-200">
                 <!-- Loaded dynamically -->
             </div>
         </div>
-    </div>
 </div>
 
 <script>
@@ -190,7 +187,7 @@ function renderLogbookTable(rows) {
         const durasi = row.jam_mulai && row.jam_selesai ? `${row.jam_mulai} - ${row.jam_selesai}` : '-';
         
         html += `
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700/40 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-colors">
                 <td class="px-3 md:px-6 py-3 md:py-4 whitespace-normal md:whitespace-nowrap">
                     <div class="text-xs md:text-sm font-medium text-gray-900 dark:text-gray-200">${row.peserta}</div>
                 </td>
@@ -231,35 +228,37 @@ async function openDetailModal(logbookId) {
             modalContent.innerHTML = `
                 <div class="space-y-4">
                     <div>
-                        <label class="text-sm font-medium text-gray-700">Peserta</label>
-                        <p class="text-gray-900">${lb.user?.name || 'N/A'}</p>
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Peserta</label>
+                        <p class="text-gray-900 dark:text-gray-100">${lb.user?.name || 'N/A'}</p>
                     </div>
                     <div>
-                        <label class="text-sm font-medium text-gray-700">Tanggal</label>
-                        <p class="text-gray-900">${tanggal}</p>
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal</label>
+                        <p class="text-gray-900 dark:text-gray-100">${tanggal}</p>
                     </div>
                     <div>
-                        <label class="text-sm font-medium text-gray-700">Aktivitas</label>
-                        <p class="text-gray-900">${lb.aktivitas}</p>
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Aktivitas</label>
+                        <p class="text-gray-900 dark:text-gray-100">${lb.aktivitas}</p>
                     </div>
                     <div>
-                        <label class="text-sm font-medium text-gray-700">Deskripsi</label>
-                        <p class="text-gray-900 whitespace-pre-wrap">${lb.deskripsi}</p>
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Deskripsi</label>
+                        <p class="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">${lb.deskripsi}</p>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-sm font-medium text-gray-700">Jam Mulai</label>
-                            <p class="text-gray-900">${lb.jam_mulai || '-'}</p>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Jam Mulai</label>
+                            <p class="text-gray-900 dark:text-gray-100">${lb.jam_mulai || '-'}</p>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700">Jam Selesai</label>
-                            <p class="text-gray-900">${lb.jam_selesai || '-'}</p>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Jam Selesai</label>
+                            <p class="text-gray-900 dark:text-gray-100">${lb.jam_selesai || '-'}</p>
                         </div>
                     </div>
                 </div>
             `;
             
-            document.getElementById('detailModal').classList.remove('hidden');
+            const detailModal = document.getElementById('detailModal');
+            detailModal.classList.remove('hidden');
+            detailModal.classList.add('flex');
         } else {
             alert('Gagal memuat detail logbook');
         }
@@ -270,7 +269,9 @@ async function openDetailModal(logbookId) {
 }
 
 function closeDetailModal() {
-    document.getElementById('detailModal').classList.add('hidden');
+    const detailModal = document.getElementById('detailModal');
+    detailModal.classList.remove('flex');
+    detailModal.classList.add('hidden');
 }
 
 // Close modal when clicking outside

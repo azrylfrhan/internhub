@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\MagangLoginController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\LogbookController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -107,6 +108,12 @@ Route::middleware(['auth', 'verified', 'role:admin,mentor'])->group(function () 
     })->name('admin.logbook');
     Route::get('/admin/logbook/data', [PresensiController::class, 'getLogbookData'])->name('admin.logbook.data');
     Route::get('/api/logbook/{id}', [PresensiController::class, 'getLogbookDetail'])->name('api.logbook.detail');
+
+    // Settings Jam Kerja
+    Route::get('/admin/settings', [SettingController::class, 'index'])->name('admin.settings.index');
+    Route::put('/admin/settings', [SettingController::class, 'update'])->name('admin.settings.update');
+    Route::post('/admin/settings/custom-working-days', [SettingController::class, 'storeCustomWorkingDay'])->name('admin.settings.custom-working-days.store');
+    Route::delete('/admin/settings/custom-working-days/{customWorkingDay}', [SettingController::class, 'destroyCustomWorkingDay'])->name('admin.settings.custom-working-days.destroy');
 });
 
 // Auth scaffolding routes (login, logout, register, password reset, etc)

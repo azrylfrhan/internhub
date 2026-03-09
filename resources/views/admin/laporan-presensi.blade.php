@@ -174,13 +174,14 @@ async function applyFilter() {
     }
     for (const r of data.rows) {
         const tr = document.createElement('tr');
+        tr.className = 'odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700/40 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-colors';
         tr.innerHTML = `
-            <td class="px-4 py-2">${r.tanggal}</td>
-            <td class="px-4 py-2">${r.nama}</td>
-            <td class="px-4 py-2 text-gray-600">${r.email}</td>
-            <td class="px-4 py-2">${r.status}</td>
-            <td class="px-4 py-2">${r.jam_masuk ?? ''}</td>
-            <td class="px-4 py-2">${r.jam_pulang ?? ''}</td>
+            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.tanggal}</td>
+            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.nama}</td>
+            <td class="px-4 py-2 text-gray-600 dark:text-gray-300">${r.email}</td>
+            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.status}</td>
+            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.jam_masuk ?? ''}</td>
+            <td class="px-4 py-2 text-gray-900 dark:text-gray-100">${r.jam_pulang ?? ''}</td>
         `;
         tbody.appendChild(tr);
     }

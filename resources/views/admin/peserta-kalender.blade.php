@@ -53,7 +53,7 @@
     </div>
     
     <!-- Loading overlay -->
-    <div id="calendar-loading" class="hidden absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg z-10">
+    <div id="calendar-loading" class="hidden absolute inset-0 bg-white bg-opacity-75 items-center justify-center rounded-lg z-10">
         <div class="flex flex-col items-center">
             <svg class="w-10 h-10 text-blue-600 animate-spin mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -95,9 +95,9 @@
 </div>
 
 <!-- Modal Detail Absensi -->
-<div id="modal-detail-absensi" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-end md:items-center justify-center z-50 p-4 pb-20 md:pb-4">
-    <div class="bg-white dark:bg-gray-800 rounded-t-2xl md:rounded-xl shadow-2xl max-w-md w-full md:max-h-[80vh] overflow-y-auto">
-        <div class="sticky top-0 bg-white dark:bg-gray-800 p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-2xl md:rounded-t-xl">
+<div id="modal-detail-absensi" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-[90%] sm:w-full sm:max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-2xl">
             <h3 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white" id="modal-tanggal">Tanggal</h3>
             <button type="button" onclick="closeModalDetail()" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,7 +105,7 @@
                 </svg>
             </button>
         </div>
-        <div class="p-4 md:p-6 space-y-4" id="modal-content"></div>
+        <div class="px-6 py-4 space-y-4" id="modal-content"></div>
     </div>
 </div>
 
@@ -118,7 +118,9 @@ let currentMonth = new Date().getMonth() + 1;
 renderCalendar(currentYear, currentMonth);
 
 async function renderCalendar(year, month) {
-    document.getElementById('calendar-loading').classList.remove('hidden');
+    const calendarLoading = document.getElementById('calendar-loading');
+    calendarLoading.classList.remove('hidden');
+    calendarLoading.classList.add('flex');
 
     try {
         const response = await fetch(`/admin/presensi/peserta/${currentUserId}?year=${year}&month=${month}`, {
@@ -182,12 +184,15 @@ async function renderCalendar(year, month) {
     } catch (error) {
         console.error('Error rendering calendar:', error);
     } finally {
-        document.getElementById('calendar-loading').classList.add('hidden');
+        calendarLoading.classList.remove('flex');
+        calendarLoading.classList.add('hidden');
     }
 }
 
 async function openModalDetail(dateStr) {
-    document.getElementById('modal-detail-absensi').classList.remove('hidden');
+    const detailModal = document.getElementById('modal-detail-absensi');
+    detailModal.classList.remove('hidden');
+    detailModal.classList.add('flex');
     document.getElementById('modal-tanggal').textContent = 'Memuat...';
     document.getElementById('modal-content').innerHTML = `
         <div class="flex flex-col items-center justify-center py-8">
@@ -259,7 +264,9 @@ async function openModalDetail(dateStr) {
 }
 
 function closeModalDetail() {
-    document.getElementById('modal-detail-absensi').classList.add('hidden');
+    const detailModal = document.getElementById('modal-detail-absensi');
+    detailModal.classList.remove('flex');
+    detailModal.classList.add('hidden');
 }
 
 function previousMonth() {

@@ -2,16 +2,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Presensi;
+use App\Models\CustomWorkingDay;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class PresensiController extends Controller
 {
-    // Koordinat kantor BPS
-    private const OFFICE_LAT = 1.46759;
-    private const OFFICE_LNG = 124.84542;
-    private const MAX_DISTANCE_METERS = 500; // Radius maksimal 500 meter
+    // Fallback default jika setting tidak tersedia atau tidak valid
+    private const DEFAULT_OFFICE_LAT = 1.46759;
+    private const DEFAULT_OFFICE_LNG = 124.84542;
+    private const DEFAULT_MAX_DISTANCE_METERS = 500;
 
     /**
      * Handle absen masuk
@@ -24,8 +26,9 @@ class PresensiController extends Controller
         ]);
 
         $user = Auth::user();
-        $today = Carbon::today();
-        $now = Carbon::now();
+        $today = Carbon::today('Asia/Makassar');
+        $now = Carbon::now('Asia/Makassar');
+        $todayWita = $now->copy()->startOfDay();
 
         // Cek apakah sudah absen hari ini
         $existingPresensi = Presensi::where('user_id', $user->id)
@@ -43,21 +46,25 @@ class PresensiController extends Controller
         $userLat = $request->latitude;
         $userLng = $request->longitude;
         $skipDistance = (app()->environment('local') && (empty($userLat) || empty($userLng)));
-        $distance = $skipDistance ? 0 : $this->calculateDistance($userLat, $userLng, self::OFFICE_LAT, self::OFFICE_LNG);
+        $officeConfig = $this->getOfficeConfig();
+        $distance = $skipDistance ? 0 : $this->calculateDistance($userLat, $userLng, $officeConfig['lat'], $officeConfig['lng']);
 
-        if (!$skipDistance && $distance > self::MAX_DISTANCE_METERS) {
+        if (!$skipDistance && $distance > $officeConfig['max_distance']) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda harus berada di dekat kantor BPS untuk melakukan absen. Jarak Anda: ' . round($distance) . ' meter dari kantor.'
             ], 400);
         }
 
-        // Validasi jam masuk - cek apakah tepat waktu atau terlambat
-        $jamMasuk = $now->copy()->setTimezone('Asia/Makassar')->format('H:i');
-        $batasMasuk = Carbon::today('Asia/Makassar')->setTime(7, 30, 0);
+        // Validasi jam masuk berdasarkan prioritas: custom date > Jumat > Senin-Kamis
+        $jamMasuk = $now->format('H:i');
+        $schedule = $this->resolveScheduleForDate($todayWita);
+        $batasMasukSetting = $schedule['jam_masuk'];
+        [$batasMasukJam, $batasMasukMenit] = explode(':', $batasMasukSetting);
+        $batasMasuk = Carbon::today('Asia/Makassar')->setTime((int) $batasMasukJam, (int) $batasMasukMenit, 0);
         
         // Tentukan status berdasarkan jam
-        if ($now->copy()->setTimezone('Asia/Makassar')->lessThanOrEqualTo($batasMasuk)) {
+        if ($now->lessThanOrEqualTo($batasMasuk)) {
             $status = 'hadir';
         } else {
             $status = 'terlambat';
@@ -94,8 +101,9 @@ class PresensiController extends Controller
         ]);
 
         $user = Auth::user();
-        $today = Carbon::today();
-        $now = Carbon::now();
+        $today = Carbon::today('Asia/Makassar');
+        $now = Carbon::now('Asia/Makassar');
+        $todayWita = $now->copy()->startOfDay();
 
         // Cari presensi hari ini
         $presensi = Presensi::where('user_id', $user->id)
@@ -109,7 +117,8 @@ class PresensiController extends Controller
             ], 400);
         }
 
-        if ($presensi->jam_pulang) {
+        $isAutoCheckout = $presensi->jam_pulang === '23:59' && $presensi->keterangan === 'Auto checkout by system';
+        if ($presensi->jam_pulang && !$isAutoCheckout) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda sudah melakukan absen pulang hari ini.'
@@ -120,22 +129,26 @@ class PresensiController extends Controller
         $userLat = $request->latitude;
         $userLng = $request->longitude;
         $skipDistance = (app()->environment('local') && (empty($userLat) || empty($userLng)));
-        $distance = $skipDistance ? 0 : $this->calculateDistance($userLat, $userLng, self::OFFICE_LAT, self::OFFICE_LNG);
+        $officeConfig = $this->getOfficeConfig();
+        $distance = $skipDistance ? 0 : $this->calculateDistance($userLat, $userLng, $officeConfig['lat'], $officeConfig['lng']);
 
-        if (!$skipDistance && $distance > self::MAX_DISTANCE_METERS) {
+        if (!$skipDistance && $distance > $officeConfig['max_distance']) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda harus berada di dekat kantor BPS untuk melakukan absen pulang. Jarak Anda: ' . round($distance) . ' meter dari kantor.'
             ], 400);
         }
 
-        // Validasi jam pulang harus di atas 16:00 WITA
-        $jamPulang = $now->copy()->setTimezone('Asia/Makassar')->format('H:i');
-        $batasPulang = Carbon::today('Asia/Makassar')->setTime(16, 0, 0);
-        if ($now->copy()->setTimezone('Asia/Makassar')->lessThan($batasPulang)) {
+        // Validasi jam pulang berdasarkan prioritas: custom date > Jumat > Senin-Kamis
+        $jamPulang = $now->format('H:i');
+        $schedule = $this->resolveScheduleForDate($todayWita);
+        $batasPulangSetting = $schedule['jam_pulang'];
+        [$batasPulangJam, $batasPulangMenit] = explode(':', $batasPulangSetting);
+        $batasPulang = Carbon::today('Asia/Makassar')->setTime((int) $batasPulangJam, (int) $batasPulangMenit, 0);
+        if ($now->lessThan($batasPulang)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Absen pulang hanya bisa dilakukan setelah jam 16:00 WITA.'
+                'message' => 'Absen pulang hanya bisa dilakukan setelah jam ' . $batasPulangSetting . ' WITA.'
             ], 400);
         }
 
@@ -143,6 +156,7 @@ class PresensiController extends Controller
         $presensi->update([
             'jam_pulang' => $jamPulang,
             'lokasi_pulang' => $lokasiPulang,
+            'keterangan' => $isAutoCheckout ? null : $presensi->keterangan,
         ]);
 
         return response()->json([
@@ -165,6 +179,90 @@ class PresensiController extends Controller
         $batasWaktu = Carbon::today()->setHour(8)->setMinute(0)->setSecond(0);
 
         return $waktuAbsen->greaterThan($batasWaktu) ? 'terlambat' : 'hadir';
+    }
+
+    /**
+     * Ambil setting waktu format HH:ii dengan fallback aman.
+     */
+    private function getSettingTime(string $key, string $fallback): string
+    {
+        $value = Setting::where('key', $key)->value('value');
+        if (!is_string($value)) {
+            return $fallback;
+        }
+
+        $value = trim($value);
+        return preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $value) ? $value : $fallback;
+    }
+
+    /**
+     * Ambil konfigurasi jadwal berdasarkan prioritas custom date > Jumat > Senin-Kamis.
+     */
+    private function resolveScheduleForDate(Carbon $date): array
+    {
+        $dateStr = $date->toDateString();
+
+        $customDay = CustomWorkingDay::whereDate('tanggal_mulai', '<=', $dateStr)
+            ->whereDate('tanggal_selesai', '>=', $dateStr)
+            ->orderByDesc('tanggal_mulai')
+            ->first();
+
+        if ($customDay) {
+            return [
+                'jam_masuk' => Carbon::parse($customDay->jam_masuk)->format('H:i'),
+                'jam_pulang' => Carbon::parse($customDay->jam_pulang)->format('H:i'),
+                'source' => 'custom_working_days',
+            ];
+        }
+
+        // Carbon: Friday = 5
+        if ((int) $date->dayOfWeek === Carbon::FRIDAY) {
+            return [
+                'jam_masuk' => $this->getSettingTime('jam_masuk_jumat', '07:30'),
+                'jam_pulang' => $this->getSettingTime('jam_pulang_jumat', '16:00'),
+                'source' => 'jumat',
+            ];
+        }
+
+        // Default untuk Senin-Kamis (dan fallback hari lain)
+        return [
+            'jam_masuk' => $this->getSettingTime('jam_masuk_senin_kamis', '07:30'),
+            'jam_pulang' => $this->getSettingTime('jam_pulang_senin_kamis', '16:00'),
+            'source' => 'senin_kamis',
+        ];
+    }
+
+    /**
+     * Ambil konfigurasi lokasi kantor dari settings dengan fallback aman.
+     */
+    private function getOfficeConfig(): array
+    {
+        return [
+            'lat' => $this->getSettingFloat('office_latitude', self::DEFAULT_OFFICE_LAT),
+            'lng' => $this->getSettingFloat('office_longitude', self::DEFAULT_OFFICE_LNG),
+            'max_distance' => $this->getSettingInt('max_distance_meters', self::DEFAULT_MAX_DISTANCE_METERS),
+        ];
+    }
+
+    private function getSettingFloat(string $key, float $fallback): float
+    {
+        $value = Setting::where('key', $key)->value('value');
+        if (!is_numeric($value)) {
+            return $fallback;
+        }
+
+        return (float) $value;
+    }
+
+    private function getSettingInt(string $key, int $fallback): int
+    {
+        $value = Setting::where('key', $key)->value('value');
+        if (!is_numeric($value)) {
+            return $fallback;
+        }
+
+        $int = (int) $value;
+        return $int > 0 ? $int : $fallback;
     }
 
     /**
@@ -192,8 +290,8 @@ class PresensiController extends Controller
     public function getStatusHariIni()
     {
         $user = Auth::user();
-        $today = Carbon::today();
-        $now = Carbon::now()->setTimezone('Asia/Makassar');
+        $today = Carbon::today('Asia/Makassar');
+        $now = Carbon::now('Asia/Makassar');
 
         $presensi = Presensi::where('user_id', $user->id)
             ->where('tanggal', $today)
@@ -235,7 +333,7 @@ class PresensiController extends Controller
             return response()->json(['success' => false, 'message' => 'Fitur hanya tersedia di mode local/development'], 403);
         }
         $user = Auth::user();
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Makassar');
         $deleted = Presensi::where('user_id', $user->id)
             ->where('tanggal', $today)
             ->delete();
@@ -254,8 +352,8 @@ class PresensiController extends Controller
         $user = Auth::user();
         
         // Ambil parameter month & year dari query string, default ke bulan ini
-        $year = $request->query('year', Carbon::now()->year);
-        $month = $request->query('month', Carbon::now()->month);
+        $year = $request->query('year', Carbon::now('Asia/Makassar')->year);
+        $month = $request->query('month', Carbon::now('Asia/Makassar')->month);
         
         try {
             $date = Carbon::createFromDate($year, $month, 1);
@@ -686,7 +784,7 @@ class PresensiController extends Controller
      */
     public function getRekapHariIni()
     {
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Makassar');
         
         // Get semua peserta magang
         $pesertaMagang = \App\Models\User::where('role', 'magang')->get();

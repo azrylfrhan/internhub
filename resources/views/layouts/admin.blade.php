@@ -21,20 +21,23 @@
             }
         })();
     </script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
-<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900">
-    <div class="min-h-screen w-screen flex">
+<body class="font-sans antialiased bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300" x-data="{ sidebarOpen: true }" x-init="sidebarOpen = window.innerWidth >= 1024">
+    <div class="min-h-screen w-full flex">
         <!-- Sidebar -->
         @include('layouts.partials.sidebar')
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col transition-all duration-300" id="admin-main" :class="sidebarOpen ? 'lg:ml-72' : 'lg:ml-0'">
             <!-- Header -->
             @include('layouts.partials.header')
 
                 <!-- Page Content -->
-            <main id="main-content" class="flex-1 py-4 md:py-6 lg:py-8 transition-all duration-300 ease-in-out">
-                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <main id="main-content" class="flex-1 transition-all duration-300 ease-in-out">
+                <div class="p-4 md:p-6 lg:p-8">
                     @yield('content')
                 </div>
             </main>
@@ -42,7 +45,7 @@
     </div>
 
     <!-- Backdrop for mobile -->
-    <div id="backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden transition-opacity" onclick="toggleSidebar()"></div>
+    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-black/50 z-30 lg:hidden" @click="sidebarOpen = false"></div>
 
     <!-- Global Content Loading Overlay -->
     <div id="adminLoadingOverlay" class="hidden fixed inset-0 bg-white/90 dark:bg-gray-900/90 z-50 backdrop-blur-sm">
@@ -55,8 +58,6 @@
     </div>
 
     <script>
-        let sidebarCollapsed = false;
-
         // Theme Management
         function toggleThemeMenu() {
             const menu = document.getElementById('theme-menu');
@@ -108,67 +109,12 @@
             }
         });
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('backdrop');
-            const menuTexts = document.querySelectorAll('.menu-item-text');
-            const logoText = document.querySelector('.sidebar-logo-text');
-            const toggleButton = document.querySelector('.sidebar-toggle-button');
-
-            if (window.innerWidth < 1024) {
-                // Mobile: toggle show/hide sidebar
-                const isOpen = !sidebar.classList.contains('-translate-x-full');
-                if (isOpen) {
-                    sidebar.classList.add('-translate-x-full');
-                    backdrop.classList.add('hidden');
-                } else {
-                    sidebar.classList.remove('-translate-x-full');
-                    backdrop.classList.remove('hidden');
-                }
-            } else {
-                // Desktop: toggle collapse/expand
-                sidebarCollapsed = !sidebarCollapsed;
-
-                if (sidebarCollapsed) {
-                    sidebar.classList.remove('lg:w-72');
-                    sidebar.classList.add('lg:w-20');
-                    menuTexts.forEach(text => text.classList.add('hidden'));
-                    if (logoText) logoText.classList.add('hidden');
-                    if (toggleButton) toggleButton.classList.remove('hidden');
-                } else {
-                    sidebar.classList.remove('lg:w-20');
-                    sidebar.classList.add('lg:w-72');
-                    menuTexts.forEach(text => text.classList.remove('hidden'));
-                    if (logoText) logoText.classList.remove('hidden');
-                    if (toggleButton) toggleButton.classList.add('hidden');
-                }
-            }
-        }
-
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize theme
             const theme = localStorage.getItem('theme') || 'system';
             updateThemeIcon(theme);
             applyTheme(theme);
-
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('backdrop');
-            // Mobile: sidebar hidden by default
-            if (window.innerWidth < 1024) {
-                sidebar.classList.add('-translate-x-full');
-                if (backdrop) backdrop.classList.add('hidden');
-            } else {
-                // Desktop: sidebar expanded by default
-                sidebar.classList.add('lg:w-72');
-                sidebar.classList.remove('lg:w-20');
-                const menuTexts = document.querySelectorAll('.menu-item-text');
-                const logoText = document.querySelector('.sidebar-logo-text');
-                const toggleButton = document.querySelector('.sidebar-toggle-button');
-                menuTexts.forEach(text => text.classList.remove('hidden'));
-                if (logoText) logoText.classList.remove('hidden');
-                if (toggleButton) toggleButton.classList.add('hidden');
-            }
         });
 
         // Show loading overlay on navigation clicks
@@ -180,14 +126,6 @@
             const href = link.getAttribute('href');
             if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
             if (link.dataset.noLoader !== undefined) return;
-            
-            // Close sidebar on mobile when menu item clicked
-            const sidebar = document.getElementById('sidebar');
-            if (window.innerWidth < 1024 && sidebar && !sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.add('-translate-x-full');
-                const backdrop = document.getElementById('backdrop');
-                if (backdrop) backdrop.classList.add('hidden');
-            }
             
             showAdminLoadingOverlay();
         });

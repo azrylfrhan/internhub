@@ -40,7 +40,7 @@
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                 @forelse($pesertaList as $peserta)
-                    <tr id="row-user-{{ $peserta->id }}" class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <tr id="row-user-{{ $peserta->id }}" class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700/40 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-colors">
                         <td class="px-3 md:px-4 py-2 text-gray-900 dark:text-gray-200 font-medium">{{ $peserta->name }}<span class="block md:hidden text-xs text-gray-500 dark:text-gray-400">{{ $peserta->email }}</span></td>
                         <td class="hidden md:table-cell px-3 md:px-4 py-2 text-gray-600 dark:text-gray-400">{{ $peserta->email }}</td>
                         <td class="px-3 md:px-4 py-2 space-x-2 whitespace-nowrap">
@@ -89,7 +89,7 @@ async function nonaktifkanPeserta(userId, btn) {
         alert(err.message || 'Terjadi kesalahan');
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Hapus / Nonaktifkan';
+        btn.textContent = 'Hapus';
     }
 }
 </script>
