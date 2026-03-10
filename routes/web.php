@@ -59,6 +59,7 @@ Route::middleware(['auth', 'verified', 'role:magang'])->group(function () {
     Route::get('/magang/logbook/data', [LogbookController::class, 'getData'])->name('magang.logbook.data');
     Route::get('/magang/logbook/stats', [LogbookController::class, 'getStats'])->name('magang.logbook.stats');
     Route::post('/magang/logbook/store', [LogbookController::class, 'store'])->name('magang.logbook.store');
+    Route::put('/magang/logbook/{id}', [LogbookController::class, 'update'])->name('magang.logbook.update');
     Route::delete('/magang/logbook/{id}', [LogbookController::class, 'destroy'])->name('magang.logbook.destroy');
 
     Route::get('/magang/profile', function () {

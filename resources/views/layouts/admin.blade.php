@@ -9,6 +9,16 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <style>
+        [x-cloak] { display: none !important; }
+        @keyframes loading-bar-sweep {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(420%); }
+        }
+        .loading-progress-bar {
+            animation: loading-bar-sweep 1.05s linear infinite;
+        }
+    </style>
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
@@ -21,15 +31,13 @@
             }
         })();
     </script>
-    <style>
-        [x-cloak] { display: none !important; }
-    </style>
 </head>
 <body class="font-sans antialiased bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
     <div
         class="min-h-screen w-full flex"
-        x-data="{ sidebarExpanded: false, isMobile: false }"
+        x-data="{ sidebarExpanded: false, isMobile: false, loading: true }"
         x-init="
+            window.onload = () => { setTimeout(() => loading = false, 500) };
             const syncScreen = () => {
                 isMobile = window.innerWidth < 768;
                 if (isMobile) {
@@ -39,7 +47,16 @@
             syncScreen();
             window.addEventListener('resize', syncScreen);
         "
+        x-on:page-loading.window="loading = true"
+        x-on:page-loaded.window="loading = false"
     >
+        <x-loading-screen
+            x-show="loading"
+            x-transition:leave="transition ease-in duration-300"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+        />
+
         <!-- Sidebar -->
         @include('layouts.partials.sidebar')
 
@@ -59,16 +76,6 @@
 
     <!-- Backdrop for mobile -->
     <div x-show="isMobile && sidebarExpanded" x-transition.opacity class="fixed inset-0 bg-black/50 z-30 md:hidden" @click="sidebarExpanded = false"></div>
-
-    <!-- Global Content Loading Overlay -->
-    <div id="adminLoadingOverlay" class="hidden fixed inset-0 bg-white/90 dark:bg-gray-900/90 z-50 backdrop-blur-sm">
-        <div class="flex items-center justify-center h-full gap-3 text-gray-700 dark:text-gray-200">
-            <svg class="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v4m0 8v4m-8-8h4m8 0h4m-2.5-5.5l-2.5 2.5m0 5l2.5 2.5m-11-10l-2.5-2.5m0 10l2.5-2.5"></path>
-            </svg>
-            <span id="adminLoadingText" class="text-lg font-medium">Memuat konten...</span>
-        </div>
-    </div>
 
     <script>
         // Theme Management
@@ -140,24 +147,61 @@
             if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
             if (link.dataset.noLoader !== undefined) return;
             
-            showAdminLoadingOverlay();
+            window.dispatchEvent(new CustomEvent('page-loading'));
         });
+
+        function applyInlineSubmitState(button) {
+            if (!button || button.disabled || button.dataset.skipInlineLoader !== undefined) return;
+
+            const label = (button.innerText || '').toLowerCase();
+            if (!label.includes('simpan') && !label.includes('login') && !label.includes('masuk')) return;
+
+            if (!button.querySelector('[data-inline-spinner]')) {
+                const spinner = document.createElement('span');
+                spinner.setAttribute('data-inline-spinner', 'true');
+                spinner.className = 'inline-block h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin';
+                button.appendChild(spinner);
+            }
+
+            button.classList.add('opacity-50', 'pointer-events-none');
+            button.disabled = true;
+        }
 
         // Show loading overlay on form submissions (skip when disabled)
         document.addEventListener('submit', function(event) {
             const form = event.target;
+            const submitBtn = event.submitter || form.querySelector('button[type="submit"]');
+
+            applyInlineSubmitState(submitBtn);
+
             if (form.dataset.noLoader !== undefined) return;
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn && submitBtn.disabled) return;
-            showAdminLoadingOverlay();
+            if (submitBtn && submitBtn.disabled && !submitBtn.querySelector('[data-inline-spinner]')) return;
+
+            window.dispatchEvent(new CustomEvent('page-loading'));
         });
 
-        function showAdminLoadingOverlay() {
-            const overlay = document.getElementById('adminLoadingOverlay');
-            if (overlay) overlay.classList.remove('hidden');
-        }
+        window.addEventListener('pageshow', function() {
+            window.dispatchEvent(new CustomEvent('page-loaded'));
+        });
+
     </script>
 
-    @include('components.toast')
+    <script src="{{ asset('js/notifications.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(session('success'))
+                showMessage(@js(session('success')), 'success');
+            @endif
+            @if(session('error'))
+                showMessage(@js(session('error')), 'error');
+            @endif
+            @if(session('status'))
+                showMessage(@js(session('status')), 'info');
+            @endif
+            @if($errors->any())
+                showMessage(@js($errors->first()), 'error');
+            @endif
+        });
+    </script>
 </body>
 </html>

@@ -112,6 +112,7 @@
                 const text = document.getElementById('loginBtnText');
                 const spinner = document.getElementById('loginSpinner');
                 btn.disabled = true;
+                btn.classList.add('opacity-50', 'pointer-events-none');
                 text.textContent = 'Loading...';
                 spinner.classList.remove('hidden');
             });

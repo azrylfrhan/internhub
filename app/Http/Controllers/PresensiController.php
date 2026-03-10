@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Presensi;
+use App\Models\Logbook;
 use App\Models\CustomWorkingDay;
 use App\Models\Setting;
 use Illuminate\Http\Request;
@@ -380,6 +381,12 @@ class PresensiController extends Controller
             ];
         }
 
+        $hadirCount = $presensis->whereIn('status', ['hadir', 'terlambat'])->count();
+        $izinAlpaCount = $presensis->whereIn('status', ['izin', 'alpa'])->count();
+        $logbookCount = Logbook::where('user_id', $user->id)
+            ->whereBetween('tanggal', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
+            ->count();
+
         return response()->json([
             'success' => true,
             'month' => $date->format('Y-m'),
@@ -406,11 +413,11 @@ class PresensiController extends Controller
         }
 
         $presensi = Presensi::where('user_id', $user->id)
-            ->where('tanggal', $date)
+            ->whereDate('tanggal', $date->toDateString())
             ->first();
 
         $logbook = \App\Models\Logbook::where('user_id', $user->id)
-            ->where('tanggal', $date)
+            ->whereDate('tanggal', $date->toDateString())
             ->first();
 
         return response()->json([
@@ -454,11 +461,11 @@ class PresensiController extends Controller
         }
 
         $presensi = Presensi::where('user_id', $user->id)
-            ->where('tanggal', $date)
+            ->whereDate('tanggal', $date->toDateString())
             ->first();
 
         $logbook = \App\Models\Logbook::where('user_id', $user->id)
-            ->where('tanggal', $date)
+            ->whereDate('tanggal', $date->toDateString())
             ->first();
 
         return response()->json([
@@ -475,7 +482,10 @@ class PresensiController extends Controller
                 'jam_pulang' => $presensi->jam_pulang,
             ] : null,
             'logbook' => $logbook ? [
-                'kegiatan' => $logbook->kegiatan,
+                'aktivitas' => $logbook->aktivitas,
+                'deskripsi' => $logbook->deskripsi,
+                'jam_mulai' => $logbook->jam_mulai,
+                'jam_selesai' => $logbook->jam_selesai,
             ] : null
         ]);
     }
@@ -872,6 +882,12 @@ class PresensiController extends Controller
             ];
         }
 
+        $hadirCount = $presensis->whereIn('status', ['hadir', 'terlambat'])->count();
+        $izinAlpaCount = $presensis->whereIn('status', ['izin', 'alpa'])->count();
+        $logbookCount = Logbook::where('user_id', $userId)
+            ->whereBetween('tanggal', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
+            ->count();
+
         return response()->json([
             'success' => true,
             'user' => [
@@ -882,7 +898,12 @@ class PresensiController extends Controller
             'month' => $date->format('Y-m'),
             'year' => (int)$year,
             'month_num' => (int)$month,
-            'calendar' => $calendar
+            'calendar' => $calendar,
+            'summary' => [
+                'hadir' => $hadirCount,
+                'izin_alpa' => $izinAlpaCount,
+                'logbook' => $logbookCount,
+            ],
         ]);
     }
 }

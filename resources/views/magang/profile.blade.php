@@ -21,7 +21,7 @@
             <div class="flex-1">
                 <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ Auth::user()->name }}</h1>
                 <p class="text-gray-600 dark:text-gray-400">{{ Auth::user()->email }}</p>
-                <p class="text-sm text-blue-600 dark:text-blue-400 font-medium mt-1">Anak InternHub</p>
+                <p class="text-sm text-blue-600 dark:text-blue-400 font-medium mt-1">Anak Magang</p>
             </div>
         </div>
     </div>
@@ -118,7 +118,7 @@
         <div class="space-y-3">
             <button
                 type="button"
-                @click="editModal = true"
+                @click="passwordModal = false; editModal = true"
                 class="w-full flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
                 <div class="flex items-center space-x-3">
@@ -134,7 +134,7 @@
 
             <button
                 type="button"
-                @click="passwordModal = true"
+                @click="editModal = false; passwordModal = true"
                 class="w-full flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
                 <div class="flex items-center space-x-3">
@@ -153,7 +153,7 @@
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <form id="profileLogoutForm" method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="button" onclick="confirmProfileLogout()" class="w-full bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2">
+            <button type="button" onclick="showLogoutConfirm('profileLogoutForm')" class="w-full bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                 </svg>
@@ -320,31 +320,7 @@
 </div>
 
 <script>
-function confirmProfileLogout() {
-    if (!confirm('Apakah Anda yakin ingin keluar?')) return;
-
-    const overlay = document.getElementById('pageLoadingOverlay');
-    if (overlay) {
-        const textEl = overlay.querySelector('p');
-        if (textEl) textEl.textContent = 'Sedang logout...';
-        overlay.classList.remove('hidden');
-    }
-
-    const form = document.getElementById('profileLogoutForm');
-    const submitBtn = form?.querySelector('button[type="button"]');
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
-    }
-
-    form?.submit();
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    @if (session('success'))
-    showToast('success', "{{ addslashes(session('success')) }}");
-    @endif
-
     const passwordForm = document.getElementById('passwordUpdateForm');
     const currentPassword = document.getElementById('current_password');
     const newPassword = document.getElementById('new_password');

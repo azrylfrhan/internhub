@@ -50,7 +50,7 @@
             <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ $user->name }}</h2>
             <p class="text-gray-600 dark:text-gray-300">{{ $user->email }}</p>
             <div class="mt-2 inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/30 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300">
-                Peserta Magang InternHub
+                Peserta Magang
             </div>
         </div>
         </div>
@@ -83,16 +83,16 @@
 
     <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-4 py-3">
-            <p class="text-xs text-blue-700 dark:text-blue-300">Hadir Bulan Ini</p>
-            <p class="text-2xl font-bold text-blue-800 dark:text-blue-200">{{ $totalHadirPeserta }}</p>
+            <p class="text-xs text-blue-700 dark:text-blue-300">Hadir Bulan Dipilih</p>
+            <p id="stat-hadir-bulan" class="text-2xl font-bold text-blue-800 dark:text-blue-200">{{ $totalHadirPeserta }}</p>
         </div>
         <div class="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 px-4 py-3">
-            <p class="text-xs text-orange-700 dark:text-orange-300">Izin/Alpa Bulan Ini</p>
-            <p class="text-2xl font-bold text-orange-800 dark:text-orange-200">{{ $totalIzinAlpaPeserta }}</p>
+            <p class="text-xs text-orange-700 dark:text-orange-300">Izin/Alpa Bulan Dipilih</p>
+            <p id="stat-izin-alpa-bulan" class="text-2xl font-bold text-orange-800 dark:text-orange-200">{{ $totalIzinAlpaPeserta }}</p>
         </div>
         <div class="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-3">
-            <p class="text-xs text-green-700 dark:text-green-300">Logbook Bulan Ini</p>
-            <p class="text-2xl font-bold text-green-800 dark:text-green-200">{{ $totalLogbookPeserta }}</p>
+            <p class="text-xs text-green-700 dark:text-green-300">Logbook Bulan Dipilih</p>
+            <p id="stat-logbook-bulan" class="text-2xl font-bold text-green-800 dark:text-green-200">{{ $totalLogbookPeserta }}</p>
         </div>
     </div>
 </div>
@@ -160,7 +160,7 @@
 
 <!-- Modal Detail Absensi -->
 <div id="modal-detail-absensi" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-[90%] sm:w-full sm:max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto">
+    <div id="modal-detail-content" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-[90%] sm:w-full sm:max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto">
         <div class="sticky top-0 bg-white dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-2xl">
             <h3 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white" id="modal-tanggal">Tanggal</h3>
             <button type="button" onclick="closeModalDetail()" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
@@ -202,6 +202,7 @@ async function renderCalendar(year, month) {
 
         const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
         document.getElementById('calendar-month-year').textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+        updateSummaryCards(data.summary);
 
         const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
         const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
@@ -253,10 +254,36 @@ async function renderCalendar(year, month) {
     }
 }
 
+function updateSummaryCards(summary) {
+    if (!summary) return;
+
+    const hadirEl = document.getElementById('stat-hadir-bulan');
+    const izinAlpaEl = document.getElementById('stat-izin-alpa-bulan');
+    const logbookEl = document.getElementById('stat-logbook-bulan');
+
+    if (hadirEl) hadirEl.textContent = summary.hadir ?? 0;
+    if (izinAlpaEl) izinAlpaEl.textContent = summary.izin_alpa ?? 0;
+    if (logbookEl) logbookEl.textContent = summary.logbook ?? 0;
+}
+
 async function openModalDetail(dateStr) {
-    const detailModal = document.getElementById('modal-detail-absensi');
-    detailModal.classList.remove('hidden');
-    detailModal.classList.add('flex');
+    const modal = document.getElementById('modal-detail-absensi');
+    const modalContent = document.getElementById('modal-detail-content');
+    
+    // Show modal instantly with loading state
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            modal.classList.remove('bg-opacity-0');
+            modal.classList.add('bg-opacity-50');
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        });
+    });
+    
     document.getElementById('modal-tanggal').textContent = 'Memuat...';
     document.getElementById('modal-content').innerHTML = `
         <div class="flex flex-col items-center justify-center py-8">
@@ -266,7 +293,7 @@ async function openModalDetail(dateStr) {
             <p class="text-gray-500 text-sm">Memuat detail absensi...</p>
         </div>
     `;
-
+    
     try {
         const response = await fetch(`/admin/presensi/peserta/${currentUserId}/tanggal/${dateStr}`, {
             headers: {
@@ -275,57 +302,67 @@ async function openModalDetail(dateStr) {
             }
         });
         const data = await response.json();
-
+        
         if (!data.success) {
             closeModalDetail();
             return;
         }
-
+        
+        // Set tanggal di modal
         document.getElementById('modal-tanggal').textContent = data.tanggal;
+        
+        // Build content (absensi + logbook)
+        const presensi = data.presensi || null;
+        const logbook = data.logbook || null;
+        const status = presensi?.status || 'belum ada';
 
-        let content = '';
-        if (data.presensi) {
-            const status = data.presensi.status;
-            let statusBgClass = status === 'hadir' ? 'bg-green-100' : status === 'terlambat' ? 'bg-orange-100' : 'bg-gray-100';
-            let statusTextClass = status === 'hadir' ? 'text-green-800' : status === 'terlambat' ? 'text-orange-800' : 'text-gray-800';
+        let statusBgClass = 'bg-gray-100 dark:bg-gray-700';
+        let statusTextClass = 'text-gray-800 dark:text-gray-200';
+        if (status === 'hadir') {
+            statusBgClass = 'bg-green-100 dark:bg-green-900/30';
+            statusTextClass = 'text-green-800 dark:text-green-300';
+        } else if (status === 'terlambat') {
+            statusBgClass = 'bg-orange-100 dark:bg-orange-900/30';
+            statusTextClass = 'text-orange-800 dark:text-orange-300';
+        }
 
-            content += `
-                <div class="space-y-4 md:space-y-3">
-                    <div class="border-b pb-3 md:pb-3">
-                        <h4 class="font-semibold text-gray-900 mb-2 text-sm md:text-base">Status Absensi</h4>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs md:text-sm font-medium ${statusBgClass} ${statusTextClass}">
+        let content = `
+            <div class="space-y-4">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
+                    <h4 class="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Informasi Kehadiran</h4>
+                    <div class="mb-2">
+                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusBgClass} ${statusTextClass}">
                             ${status.charAt(0).toUpperCase() + status.slice(1)}
                         </span>
                     </div>
-                    <div class="border-b pb-3 md:pb-3">
-                        <h4 class="font-semibold text-gray-900 mb-2 text-sm md:text-base">Waktu Absensi</h4>
-                        <p class="text-xs md:text-sm text-gray-600 mb-1">Masuk: <span class="font-medium">${data.presensi.jam_masuk || '—'}</span></p>
-                        <p class="text-xs md:text-sm text-gray-600">Pulang: <span class="font-medium">${data.presensi.jam_pulang || '—'}</span></p>
+                    <div class="grid grid-cols-1 gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
+                        <p>Jam Datang: <span class="font-semibold text-gray-900 dark:text-white">${presensi?.jam_masuk || '—'}</span></p>
+                        <p>Jam Pulang: <span class="font-semibold text-gray-900 dark:text-white">${presensi?.jam_pulang || '—'}</span></p>
                     </div>
                 </div>
-            `;
-        } else {
-            content += '<p class="text-gray-600 text-xs md:text-sm text-center py-4">Belum ada absensi pada hari ini</p>';
-        }
 
-        if (data.logbook) {
-            content += `
-                <div class="border-t pt-4 md:pt-3">
-                    <h4 class="font-semibold text-gray-900 mb-2 text-sm md:text-base">Catatan Logbook</h4>
-                    <p class="text-xs md:text-sm text-gray-600 leading-relaxed">${data.logbook.kegiatan}</p>
+                <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
+                    <h4 class="mb-2 text-sm font-semibold text-gray-900 dark:text-white">Catatan Logbook</h4>
+                    ${logbook ? `
+                        <p class="mb-1 text-sm font-medium text-gray-900 dark:text-white">Aktivitas: ${logbook.aktivitas || '-'}</p>
+                        <p class="mb-2 text-sm text-gray-700 dark:text-gray-300">${logbook.deskripsi || '-'}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Waktu: <span class="font-medium">${(logbook.jam_mulai || '—')} - ${(logbook.jam_selesai || '—')}</span></p>
+                    ` : `
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Belum ada catatan logbook pada tanggal ini.</p>
+                    `}
                 </div>
-            `;
-        } else if (data.presensi) {
-            content += '<p class="text-gray-500 text-xs md:text-sm text-center py-4 border-t">Belum ada catatan logbook</p>';
-        }
-
+            </div>
+        `;
+        
         document.getElementById('modal-content').innerHTML = content;
-
+        
     } catch (error) {
         console.error('Error opening modal:', error);
         closeModalDetail();
+        showMessage('Gagal memuat detail absensi', 'error');
     }
 }
+
 
 function closeModalDetail() {
     const detailModal = document.getElementById('modal-detail-absensi');

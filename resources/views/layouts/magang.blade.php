@@ -8,6 +8,16 @@
     <link rel="icon" type="image/png" href="/logo-bps.png" />
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+    <style>
+        [x-cloak] { display: none !important; }
+        @keyframes loading-bar-sweep {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(420%); }
+        }
+        .loading-progress-bar {
+            animation: loading-bar-sweep 1.05s linear infinite;
+        }
+    </style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .theme-transition {
@@ -22,7 +32,18 @@
         })();
     </script>
 </head>
-<body class="font-sans antialiased bg-gray-100 dark:bg-gray-900 transition-colors duration-300 min-h-screen flex flex-col">
+<body class="font-sans antialiased bg-gray-100 dark:bg-gray-900 transition-colors duration-300 min-h-screen flex flex-col"
+    x-data="{ loading: true }"
+    x-init="window.onload = () => { setTimeout(() => loading = false, 500) }"
+    x-on:page-loading.window="loading = true"
+    x-on:page-loaded.window="loading = false"
+>
+    <x-loading-screen
+        x-show="loading"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+    />
     <header class="sticky top-0 z-40 w-full border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="h-16 flex items-center justify-between gap-4">
@@ -100,15 +121,6 @@
         </div>
     </nav>
 
-    <div id="pageLoadingOverlay" class="hidden fixed inset-0 bg-white/95 dark:bg-gray-900/95 z-[70] transition-colors">
-        <div class="flex flex-col items-center justify-center h-full px-6">
-            <svg class="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            <p class="text-gray-600 dark:text-gray-300 font-medium">Memuat halaman...</p>
-        </div>
-    </div>
-
     <div id="logoutModal" class="hidden fixed inset-0 bg-black bg-opacity-0 z-[99] transition-all duration-300 ease-out">
         <div class="flex items-center justify-center h-full px-4">
             <div id="logoutModalContent" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-sm w-full transform transition-all duration-300 ease-out scale-95 opacity-0">
@@ -130,9 +142,11 @@
     </div>
 
     <script>
+        let logoutFormTarget = 'logoutForm';
+
         function toggleThemeMenu() {
             const menu = document.getElementById('theme-menu');
-            menu.classList.toggle('hidden');
+            if (menu) menu.classList.toggle('hidden');
         }
 
         function setTheme(theme) {
@@ -145,11 +159,7 @@
 
         function applyTheme(theme) {
             const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
+            document.documentElement.classList.toggle('dark', isDark);
             if (!document.documentElement.classList.contains('theme-transition')) {
                 document.documentElement.classList.add('theme-transition');
             }
@@ -170,16 +180,12 @@
             else systemIcon.classList.remove('hidden');
         }
 
-        document.addEventListener('click', function(event) {
-            const menu = document.getElementById('theme-menu');
-            if (!menu) return;
-            const button = event.target.closest('button[onclick="toggleThemeMenu()"]');
-            if (!button && !menu.contains(event.target)) menu.classList.add('hidden');
-        });
-
-        function showLogoutConfirm() {
+        function showLogoutConfirm(formId = 'logoutForm') {
+            logoutFormTarget = formId;
             const modal = document.getElementById('logoutModal');
             const modalContent = document.getElementById('logoutModalContent');
+            if (!modal || !modalContent) return;
+
             modal.classList.remove('hidden');
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
@@ -194,89 +200,116 @@
         function closeLogoutModal() {
             const modal = document.getElementById('logoutModal');
             const modalContent = document.getElementById('logoutModalContent');
+            if (!modal || !modalContent) return;
+
             modal.classList.remove('bg-opacity-50');
             modal.classList.add('bg-opacity-0');
             modalContent.classList.remove('scale-100', 'opacity-100');
             modalContent.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        async function confirmLogout() {
-            const overlay = document.getElementById('pageLoadingOverlay');
-            if (overlay) {
-                const textEl = overlay.querySelector('p');
-                if (textEl) textEl.textContent = 'Sedang logout...';
-                overlay.classList.remove('hidden');
-            }
+        function confirmLogout() {
+            const targetForm = document.getElementById(logoutFormTarget);
+            if (!targetForm) return;
 
+            window.dispatchEvent(new CustomEvent('page-loading'));
             document.querySelectorAll('#logoutModal button').forEach(btn => {
                 btn.disabled = true;
                 btn.classList.add('opacity-60', 'cursor-not-allowed');
             });
 
-            try {
-                await fetch('{{ route('login') }}', { method: 'HEAD' });
-            } catch (e) {
-                console.log('Failed to refresh session, continuing logout');
-            }
-
-            document.getElementById('logoutForm').submit();
+            targetForm.submit();
         }
 
         document.addEventListener('click', function(event) {
+            const menu = document.getElementById('theme-menu');
+            const button = event.target.closest('button[onclick="event.stopPropagation(); toggleThemeMenu();"]');
+            if (menu && !button && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+
             const modal = document.getElementById('logoutModal');
             if (event.target === modal) closeLogoutModal();
         });
 
         document.addEventListener('DOMContentLoaded', function() {
             const theme = localStorage.getItem('theme') || 'system';
-            updateThemeIcon(theme);
             applyTheme(theme);
+            updateThemeIcon(theme);
 
             const logoutIconButton = document.getElementById('logoutIconButton');
             if (logoutIconButton) {
-                const openLogout = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showLogoutConfirm();
-                };
-                ['click', 'touchend'].forEach(evt => logoutIconButton.addEventListener(evt, openLogout, { passive: false }));
+                ['click', 'touchend'].forEach(evt => {
+                    logoutIconButton.addEventListener(evt, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showLogoutConfirm('logoutForm');
+                    }, { passive: false });
+                });
             }
 
-            const pageLoadingOverlay = document.getElementById('pageLoadingOverlay');
             const navLinks = document.querySelectorAll('.js-nav-link[href]');
-
             navLinks.forEach(link => {
                 link.addEventListener('click', function() {
                     const href = this.getAttribute('href');
-                    const currentUrl = window.location.pathname;
-                    if (href && href !== currentUrl && !href.startsWith('#')) {
-                        pageLoadingOverlay.classList.remove('hidden');
+                    if (href && href !== window.location.pathname && !href.startsWith('#')) {
+                        window.dispatchEvent(new CustomEvent('page-loading'));
                     }
                 });
             });
-
-            pageLoadingOverlay.classList.add('hidden');
         });
 
         window.addEventListener('pageshow', function() {
-            const pageLoadingOverlay = document.getElementById('pageLoadingOverlay');
-            if (pageLoadingOverlay) pageLoadingOverlay.classList.add('hidden');
+            window.dispatchEvent(new CustomEvent('page-loaded'));
         });
 
+        function applyInlineSubmitState(button) {
+            if (!button || button.disabled || button.dataset.skipInlineLoader !== undefined) return;
+
+            const label = (button.innerText || '').toLowerCase();
+            if (!label.includes('simpan') && !label.includes('login') && !label.includes('masuk')) return;
+
+            if (!button.querySelector('[data-inline-spinner]')) {
+                const spinner = document.createElement('span');
+                spinner.setAttribute('data-inline-spinner', 'true');
+                spinner.className = 'inline-block h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin';
+                button.appendChild(spinner);
+            }
+
+            button.classList.add('opacity-50', 'pointer-events-none');
+            button.disabled = true;
+        }
+
         document.addEventListener('submit', function(e) {
-            if (e.target.id !== 'logoutForm') {
-                const submitBtn = e.target.querySelector('button[type="submit"]');
-                if (submitBtn && !submitBtn.disabled) {
-                    const pageLoadingOverlay = document.getElementById('pageLoadingOverlay');
-                    if (pageLoadingOverlay) pageLoadingOverlay.classList.remove('hidden');
-                }
+            const form = e.target;
+            const submitBtn = e.submitter || form.querySelector('button[type="submit"]');
+
+            applyInlineSubmitState(submitBtn);
+
+            if (form.id !== 'logoutForm' && form.id !== 'profileLogoutForm') {
+                if (submitBtn && submitBtn.disabled && !submitBtn.querySelector('[data-inline-spinner]')) return;
+                window.dispatchEvent(new CustomEvent('page-loading'));
             }
         });
     </script>
 
-    @include('components.toast')
+    <script src="{{ asset('js/notifications.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(session('success'))
+                showMessage(@js(session('success')), 'success');
+            @endif
+            @if(session('error'))
+                showMessage(@js(session('error')), 'error');
+            @endif
+            @if(session('status'))
+                showMessage(@js(session('status')), 'info');
+            @endif
+            @if($errors->any())
+                showMessage(@js($errors->first()), 'error');
+            @endif
+        });
+    </script>
 </body>
 </html>

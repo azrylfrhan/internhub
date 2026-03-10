@@ -17,30 +17,40 @@ class LogbookController extends Controller
         try {
             $user = Auth::user();
             $query = Logbook::where('user_id', $user->id);
+            $perPage = 10;
 
             // Filter by date if provided
             if ($request->has('tanggal') && $request->tanggal) {
                 $query->whereDate('tanggal', $request->tanggal);
             }
 
-            $rows = $query->orderBy('tanggal', 'desc')
+            $paginator = $query->orderBy('tanggal', 'desc')
                 ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function ($row) {
-                    return [
-                        'id' => $row->id,
-                        'tanggal' => $row->tanggal,
-                        'aktivitas' => $row->aktivitas,
-                        'deskripsi' => $row->deskripsi,
-                        'jam_mulai' => $row->jam_mulai,
-                        'jam_selesai' => $row->jam_selesai,
-                        'created_at' => $row->created_at->format('d M Y H:i'),
-                    ];
-                });
+                ->paginate($perPage);
+
+            $rows = $paginator->getCollection()->map(function ($row) {
+                return [
+                    'id' => $row->id,
+                    'tanggal' => $row->tanggal,
+                    'aktivitas' => $row->aktivitas,
+                    'deskripsi' => $row->deskripsi,
+                    'jam_mulai' => $row->jam_mulai,
+                    'jam_selesai' => $row->jam_selesai,
+                    'created_at' => $row->created_at->format('d M Y H:i'),
+                ];
+            })->values();
 
             return response()->json([
                 'success' => true,
                 'rows' => $rows,
+                'pagination' => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'from' => $paginator->firstItem(),
+                    'to' => $paginator->lastItem(),
+                ],
             ]);
         } catch (\Exception $e) {
             \Log::error('Error fetching logbook data: ' . $e->getMessage());
@@ -59,6 +69,8 @@ class LogbookController extends Controller
         try {
             $user = Auth::user();
             $now = Carbon::now();
+            $weekStart = $now->copy()->startOfWeek()->toDateString();
+            $weekEnd = $now->copy()->endOfWeek()->toDateString();
 
             $total = Logbook::where('user_id', $user->id)->count();
             $month = Logbook::where('user_id', $user->id)
@@ -66,7 +78,7 @@ class LogbookController extends Controller
                 ->whereMonth('tanggal', $now->month)
                 ->count();
             $week = Logbook::where('user_id', $user->id)
-                ->whereBetween('tanggal', [$now->startOfWeek(), $now->endOfWeek()])
+                ->whereBetween('tanggal', [$weekStart, $weekEnd])
                 ->count();
 
             return response()->json([
@@ -124,6 +136,56 @@ class LogbookController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menyimpan logbook: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete logbook entry
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'tanggal' => 'required|date',
+                'aktivitas' => 'required|string|max:255',
+                'deskripsi' => 'nullable|string',
+                'jam_mulai' => 'nullable|date_format:H:i',
+                'jam_selesai' => 'nullable|date_format:H:i',
+            ]);
+
+            $logbook = Logbook::find($id);
+
+            if (!$logbook || $logbook->user_id !== Auth::id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Logbook tidak ditemukan atau Anda tidak memiliki akses',
+                ], 403);
+            }
+
+            $logbook->update([
+                'tanggal' => $request->tanggal,
+                'aktivitas' => $request->aktivitas,
+                'deskripsi' => $request->deskripsi,
+                'jam_mulai' => $request->jam_mulai,
+                'jam_selesai' => $request->jam_selesai,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Logbook berhasil diperbarui',
+                'logbook' => $logbook,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal: ' . implode(', ', $e->validator->errors()->all()),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error updating logbook: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui logbook: ' . $e->getMessage(),
             ], 500);
         }
     }
