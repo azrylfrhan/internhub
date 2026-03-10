@@ -1,102 +1,148 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# InternHub
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+InternHub adalah aplikasi manajemen presensi dan logbook peserta magang berbasis Laravel.
 
-# InternHub - Sistem Presensi dan Logbook
+Project ini mendukung multi role (`admin`, `mentor`, `magang`, `alumni`) dengan fokus utama:
 
-Aplikasi untuk mengelola presensi dan logbook peserta InternHub dengan fitur geolocation dan dark mode.
+- Presensi harian berbasis validasi lokasi kantor
+- Logbook aktivitas peserta
+- Monitoring peserta oleh admin/mentor
+- Pengaturan jam kerja dan hari kerja khusus
 
 ## Fitur Utama
 
--   ✅ **Presensi GPS-based** - Validasi lokasi kantor
--   ✅ **Auto Checkout** - Sistem otomatis checkout di 23:59 WITA
--   ✅ **Logbook Aktivitas** - Pencatatan kegiatan harian
--   ✅ **Dark Mode** - Light/Dark/System theme
--   ✅ **Dashboard Admin** - Monitoring peserta real-time
--   ✅ **Responsive Design** - Mobile-first UI
+- Presensi masuk/pulang dengan validasi koordinat lokasi.
+- Auto checkout pada `23:59` (jika peserta belum absen pulang).
+- Kalender presensi bulanan (magang dan admin).
+- Detail presensi per tanggal + detail logbook terkait.
+- Manajemen peserta magang (aktif dan arsip).
+- Manajemen akun admin/mentor (CRUD).
+- Notifikasi toast global (success/error/info).
+- Dark mode (`light`, `dark`, `system`) di area dashboard.
 
-## Auto Checkout Feature
+## Teknologi
 
-Sistem akan otomatis melakukan checkout untuk peserta yang:
+- PHP 8+
+- Laravel
+- MySQL/MariaDB
+- Blade + Tailwind CSS
+- Alpine.js (interaksi UI sederhana)
+- Vite (asset build)
 
--   Sudah absen masuk hari ini
--   Belum absen pulang sampai jam 23:59 WITA
--   Checkout otomatis dengan jam 23:59 dan keterangan "Auto checkout by system"
+## Instalasi
 
-### Menjalankan Scheduler
-
-Untuk menjalankan auto checkout otomatis, pastikan Laravel Scheduler berjalan:
+1. Clone repository
 
 ```bash
-# Development (run manually)
-php artisan schedule:run
-
-# Production (add to crontab)
-* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+git clone <repo-url>
+cd internhub
 ```
 
-### Test Auto Checkout
+2. Install dependency backend dan frontend
+
+```bash
+composer install
+npm install
+```
+
+3. Siapkan environment
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+4. Atur koneksi database di `.env`
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=internhub
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+5. Jalankan migrasi dan seeder
+
+```bash
+php artisan migrate --seed
+```
+
+6. Jalankan aplikasi
+
+```bash
+php artisan serve
+npm run dev
+```
+
+Akses aplikasi di `http://127.0.0.1:8000`.
+
+## Scheduler (Wajib Untuk Auto Checkout)
+
+Jalankan scheduler agar auto checkout bekerja.
+
+Development:
+
+```bash
+php artisan schedule:run
+```
+
+Production (cron):
+
+```bash
+* * * * * cd /path/to/internhub && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Command manual untuk uji auto checkout:
 
 ```bash
 php artisan presensi:auto-checkout
 ```
 
-## Format Waktu
+## Struktur Role
 
-Semua waktu ditampilkan dalam format **HH:mm** (tanpa detik) untuk kemudahan baca.
+- `admin`: akses dashboard admin, manajemen peserta, settings, manajemen admin/mentor.
+- `mentor`: akses monitoring peserta sesuai batas role.
+- `magang`: akses absensi, logbook, profil.
+- `alumni`: data peserta yang sudah selesai masa magang.
 
-## About Laravel
+## Rute Penting
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Magang:
+	- `/magang/attendance`
+	- `/magang/logbook`
+	- `/magang/profile`
+- Admin:
+	- `/dashboard`
+	- `/admin/peserta/detail`
+	- `/admin/laporan/presensi`
+	- `/admin/settings`
+	- `/admin/management`
 
--   [Simple, fast routing engine](https://laravel.com/docs/routing).
--   [Powerful dependency injection container](https://laravel.com/docs/container).
--   Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
--   Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
--   Database agnostic [schema migrations](https://laravel.com/docs/migrations).
--   [Robust background job processing](https://laravel.com/docs/queues).
--   [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Testing
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Menjalankan seluruh test:
 
-## Learning Laravel
+```bash
+php artisan test
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Menjalankan test spesifik:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+php artisan test --filter=AdminManagementCrudTest
+```
 
-## Laravel Sponsors
+## Catatan Pengembangan
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Gunakan timezone `Asia/Makassar` untuk fitur presensi.
+- Format waktu presensi disajikan dalam `HH:mm`.
+- Untuk perubahan UI modal/toast global, cek layout:
+	- `resources/views/layouts/admin.blade.php`
+	- `resources/views/layouts/magang.blade.php`
+	- `public/js/notifications.js`
 
-### Premium Partners
+## Lisensi
 
--   **[Vehikl](https://vehikl.com)**
--   **[Tighten Co.](https://tighten.co)**
--   **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
--   **[64 Robots](https://64robots.com)**
--   **[Curotec](https://www.curotec.com/services/technologies/laravel)**
--   **[DevSquad](https://devsquad.com/hire-laravel-developers)**
--   **[Redberry](https://redberry.international/laravel-development)**
--   **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Project ini menggunakan lisensi MIT.
