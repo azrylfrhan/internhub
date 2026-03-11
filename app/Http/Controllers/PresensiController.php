@@ -868,7 +868,6 @@ class PresensiController extends Controller
                     'hadir' => [],
                     'terlambat' => [],
                     'izin' => [],
-                    'alpa' => [],
                 ],
                 'range' => [
                     'start' => $start->format('Y-m-d'),
@@ -934,7 +933,6 @@ class PresensiController extends Controller
             'hadir' => [],
             'terlambat' => [],
             'izin' => [],
-            'alpa' => [],
         ];
 
         $period = new \Carbon\CarbonPeriod($start, '1 day', $end);
@@ -942,7 +940,7 @@ class PresensiController extends Controller
             $dateKey = $date->toDateString();
             $labels[] = $date->translatedFormat('d M');
 
-            $counts = ['hadir' => 0, 'terlambat' => 0, 'izin' => 0, 'alpa' => 0];
+            $counts = ['hadir' => 0, 'terlambat' => 0, 'izin' => 0];
 
             foreach ($participants as $participant) {
                 $accountStart = !empty($participant->created_at)
@@ -977,8 +975,6 @@ class PresensiController extends Controller
                     $counts['hadir']++;
                 } elseif ($status === 'terlambat') {
                     $counts['terlambat']++;
-                } else {
-                    $counts['alpa']++;
                 }
             }
 

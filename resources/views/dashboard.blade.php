@@ -433,14 +433,6 @@ async function loadTrend(range, buttonEl = null) {
                         backgroundColor: 'rgba(79,70,229,0.15)',
                         tension: 0.3,
                         fill: true,
-                    },
-                    {
-                        label: 'Alpa',
-                        data: data.series?.alpa || [],
-                        borderColor: '#E11D48',
-                        backgroundColor: 'rgba(225,29,72,0.15)',
-                        tension: 0.3,
-                        fill: true,
                     }
                 ]
             },
