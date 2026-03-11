@@ -842,14 +842,39 @@ class PresensiController extends Controller
     public function getTrendPresensi(Request $request)
     {
         $range = $request->query('range', '30'); // 7|30|month
+        $today = Carbon::today('Asia/Makassar');
+        $lastClosedDay = $today->copy()->subDay();
 
         if ($range === 'month') {
             $start = Carbon::now('Asia/Makassar')->startOfMonth();
             $end = Carbon::now('Asia/Makassar')->endOfMonth();
         } else {
             $days = is_numeric($range) ? max(1, (int) $range) : 30;
-            $end = Carbon::today('Asia/Makassar');
-            $start = Carbon::today('Asia/Makassar')->subDays($days - 1);
+            $end = $lastClosedDay->copy();
+            $start = $lastClosedDay->copy()->subDays($days - 1);
+        }
+
+        // Jangan hitung hari ini/future: hanya hari yang sudah lewat.
+        if ($end->gt($lastClosedDay)) {
+            $end = $lastClosedDay->copy();
+        }
+
+        // Jika belum ada hari terlewati pada periode tersebut, kembalikan data kosong.
+        if ($end->lt($start)) {
+            return response()->json([
+                'success' => true,
+                'labels' => [],
+                'series' => [
+                    'hadir' => [],
+                    'terlambat' => [],
+                    'izin' => [],
+                    'alpa' => [],
+                ],
+                'range' => [
+                    'start' => $start->format('Y-m-d'),
+                    'end' => $end->format('Y-m-d'),
+                ],
+            ]);
         }
 
         $startDate = $start->toDateString();
@@ -866,7 +891,7 @@ class PresensiController extends Controller
                 $q->whereNull('tanggal_selesai')
                     ->orWhereDate('tanggal_selesai', '>=', $startDate);
             })
-            ->get(['id', 'tanggal_mulai', 'tanggal_selesai']);
+            ->get(['id', 'created_at', 'tanggal_mulai', 'tanggal_selesai']);
 
         $participantIds = $participants->pluck('id')->all();
 
@@ -920,8 +945,21 @@ class PresensiController extends Controller
             $counts = ['hadir' => 0, 'terlambat' => 0, 'izin' => 0, 'alpa' => 0];
 
             foreach ($participants as $participant) {
-                $isStarted = empty($participant->tanggal_mulai)
-                    || Carbon::parse($participant->tanggal_mulai)->startOfDay()->lte($date);
+                $accountStart = !empty($participant->created_at)
+                    ? Carbon::parse($participant->created_at)->startOfDay()
+                    : null;
+                $internshipStart = !empty($participant->tanggal_mulai)
+                    ? Carbon::parse($participant->tanggal_mulai)->startOfDay()
+                    : null;
+
+                $effectiveStart = $accountStart;
+                if ($internshipStart && $effectiveStart) {
+                    $effectiveStart = $internshipStart->gt($effectiveStart) ? $internshipStart : $effectiveStart;
+                } elseif ($internshipStart) {
+                    $effectiveStart = $internshipStart;
+                }
+
+                $isStarted = !$effectiveStart || $effectiveStart->lte($date);
                 $isNotEnded = empty($participant->tanggal_selesai)
                     || Carbon::parse($participant->tanggal_selesai)->startOfDay()->gte($date);
 
