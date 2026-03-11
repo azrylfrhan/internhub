@@ -568,6 +568,34 @@ function updateAttendanceUI(data) {
     const permissionInfoDiv = document.getElementById('permission-status-info');
     const permissionSubmitWrapper = document.getElementById('permission-submit-wrapper');
 
+    if (data.can_attend === false) {
+        const blockReason = data.attendance_block_reason || 'Akun tidak dapat melakukan absensi saat ini.';
+
+        statusDiv.innerHTML = `
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 dark:bg-slate-800/70 dark:border-slate-700">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-slate-500 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Absensi Tidak Tersedia</h3>
+                    <p class="text-slate-700 dark:text-slate-300">${blockReason}</p>
+                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Kalender absensi dan logbook tetap dapat diakses.</p>
+                </div>
+            </div>
+        `;
+
+        buttonsDiv.innerHTML = '';
+        permissionInfoDiv.innerHTML = '';
+
+        if (permissionSubmitWrapper) {
+            permissionSubmitWrapper.classList.add('hidden');
+        }
+
+        return;
+    }
+
     if (permissionSubmitWrapper) {
         // Tombol Ajukan Izin hanya muncul jika bisa submit dan belum absen masuk
         if (data.can_submit_permission && !data.sudah_absen_masuk && !data.sudah_hadir_hari_ini) {

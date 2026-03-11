@@ -18,6 +18,22 @@ class PresensiController extends Controller
     private const DEFAULT_MAX_DISTANCE_METERS = 500;
 
     /**
+     * Cek apakah user boleh melakukan absen hari ini.
+     */
+    private function getAttendanceBlockReason($user, Carbon $today): ?string
+    {
+        if ($user->role === 'alumni') {
+            return 'Akun kamu berstatus nonaktif sehingga tidak dapat melakukan absen.';
+        }
+
+        if (!empty($user->tanggal_selesai) && Carbon::parse($user->tanggal_selesai)->startOfDay()->lt($today->copy()->startOfDay())) {
+            return 'Masa magang kamu sudah selesai, sehingga fitur absen dinonaktifkan.';
+        }
+
+        return null;
+    }
+
+    /**
      * Handle absen masuk
      */
     public function absenMasuk(Request $request)
@@ -31,6 +47,14 @@ class PresensiController extends Controller
         $today = Carbon::today('Asia/Makassar');
         $now = Carbon::now('Asia/Makassar');
         $todayWita = $now->copy()->startOfDay();
+
+        $attendanceBlockReason = $this->getAttendanceBlockReason($user, $today);
+        if ($attendanceBlockReason) {
+            return response()->json([
+                'success' => false,
+                'message' => $attendanceBlockReason,
+            ], 403);
+        }
 
         $approvedPermissionToday = Permission::where('user_id', $user->id)
             ->where('status', 'approved')
@@ -118,6 +142,14 @@ class PresensiController extends Controller
         $user = Auth::user();
         $today = Carbon::today('Asia/Makassar');
         $now = Carbon::now('Asia/Makassar');
+
+        $attendanceBlockReason = $this->getAttendanceBlockReason($user, $today);
+        if ($attendanceBlockReason) {
+            return response()->json([
+                'success' => false,
+                'message' => $attendanceBlockReason,
+            ], 403);
+        }
 
         $approvedPermissionToday = Permission::where('user_id', $user->id)
             ->where('status', 'approved')
@@ -313,6 +345,8 @@ class PresensiController extends Controller
         $user = Auth::user();
         $today = Carbon::today('Asia/Makassar');
         $now = Carbon::now('Asia/Makassar');
+        $attendanceBlockReason = $this->getAttendanceBlockReason($user, $today);
+        $canAttend = $attendanceBlockReason === null;
 
         $approvedPermissionToday = Permission::where('user_id', $user->id)
             ->where('status', 'approved')
@@ -349,12 +383,14 @@ class PresensiController extends Controller
         $has_approved_permission_today = (bool) $approvedPermissionToday;
         
         return response()->json([
+            'can_attend' => $canAttend,
+            'attendance_block_reason' => $attendanceBlockReason,
             'sudah_absen_masuk' => $sudah_absen_masuk,
             'sudah_absen_pulang' => $sudah_absen_pulang,
             'sudah_hadir_hari_ini' => $sudah_hadir_hari_ini,
             'has_approved_permission_today' => $has_approved_permission_today,
             'has_pending_permission_active' => $pendingPermissionActive,
-            'can_submit_permission' => !$has_approved_permission_today && !$pendingPermissionActive,
+            'can_submit_permission' => $canAttend && !$has_approved_permission_today && !$pendingPermissionActive,
             'permission' => $approvedPermissionToday ? [
                 'start_date' => $approvedPermissionToday->start_date->toDateString(),
                 'end_date' => $approvedPermissionToday->end_date->toDateString(),

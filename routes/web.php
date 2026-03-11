@@ -49,7 +49,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified', 'role:admin,mentor'])->name('dashboard');
 
 // Magang routes with separate layout - Protected by role middleware
-Route::middleware(['auth', 'verified', 'role:magang'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:magang,alumni'])->group(function () {
     Route::get('/magang/attendance', function () {
         return view('magang.attendance');
     })->name('magang.attendance');
