@@ -3,6 +3,15 @@
 @section('title', 'Logbook')
 
 @section('content')
+@php
+    $currentUser = auth()->user();
+    $todayWita = \Carbon\Carbon::today('Asia/Makassar')->startOfDay();
+    $isLogbookCreateBlocked = $currentUser->role === 'alumni'
+        || (!empty($currentUser->tanggal_selesai) && \Carbon\Carbon::parse($currentUser->tanggal_selesai)->startOfDay()->lt($todayWita));
+    $logbookCreateBlockReason = $currentUser->role === 'alumni'
+        ? 'Akun kamu berstatus nonaktif, sehingga tidak dapat menambahkan logbook baru.'
+        : 'Masa magang kamu sudah selesai, sehingga penambahan logbook baru dinonaktifkan.';
+@endphp
 <div class="mx-auto w-full space-y-6">
     <!-- Header -->
     <div class="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-sky-50 to-cyan-50 p-6 shadow-sm dark:border-blue-900/40 dark:from-gray-800 dark:via-gray-800 dark:to-blue-950/30">
@@ -14,7 +23,11 @@
                 <p class="text-gray-600 dark:text-gray-300">Catatan kegiatan magang Anda per hari secara terstruktur.</p>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="showAddLogbookForm()" class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center space-x-2">
+                <button
+                    onclick="showAddLogbookForm()"
+                    @disabled($isLogbookCreateBlocked)
+                    class="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600 dark:disabled:bg-slate-600 text-white px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center space-x-2"
+                >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
@@ -23,6 +36,12 @@
             </div>
         </div>
     </div>
+
+    @if($isLogbookCreateBlocked)
+        <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200">
+            {{ $logbookCreateBlockReason }}
+        </div>
+    @endif
 
     <!-- Stats -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -118,6 +137,8 @@
 
 <script>
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+const canCreateLogbook = @js(!$isLogbookCreateBlocked);
+const logbookCreateBlockReason = @js($logbookCreateBlockReason);
 let currentPage = 1;
 let editingLogbookId = null;
 const logbookRowsMap = {};
@@ -136,6 +157,11 @@ function setTodayDate() {
 }
 
 function showAddLogbookForm() {
+    if (!canCreateLogbook) {
+        showToast('error', logbookCreateBlockReason);
+        return;
+    }
+
     const modal = document.getElementById('logbookModal');
     const modalContent = document.getElementById('logbookModalContent');
     
@@ -281,8 +307,8 @@ function renderLogbookList(rows, pagination, tanggalFilter = null) {
                 </svg>
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Belum ada logbook</h3>
                 <p class="text-gray-500 dark:text-gray-400 mb-6">Mulai catat aktivitas magang Anda setiap hari</p>
-                <button onclick="showAddLogbookForm()" class="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                    Buat Logbook Pertama
+                <button onclick="showAddLogbookForm()" class="${canCreateLogbook ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600' : 'bg-slate-400 cursor-not-allowed dark:bg-slate-600'} text-white px-6 py-2 rounded-lg font-medium transition-colors" ${canCreateLogbook ? '' : 'disabled'}>
+                    ${canCreateLogbook ? 'Buat Logbook Pertama' : 'Penambahan Logbook Dinonaktifkan'}
                 </button>
             </div>
         `;
@@ -387,6 +413,11 @@ function filterLogbookByDate() {
 
 async function submitLogbook(e) {
     e.preventDefault();
+
+    if (!canCreateLogbook && editingLogbookId === null) {
+        showToast('error', logbookCreateBlockReason);
+        return;
+    }
     
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');

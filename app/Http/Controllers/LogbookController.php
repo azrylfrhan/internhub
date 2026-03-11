@@ -10,6 +10,24 @@ use Carbon\Carbon;
 class LogbookController extends Controller
 {
     /**
+     * Cek apakah user boleh menambahkan logbook baru.
+     */
+    private function getLogbookCreateBlockReason($user): ?string
+    {
+        $today = Carbon::today('Asia/Makassar')->startOfDay();
+
+        if ($user->role === 'alumni') {
+            return 'Akun kamu berstatus nonaktif, sehingga tidak dapat menambahkan logbook baru.';
+        }
+
+        if (!empty($user->tanggal_selesai) && Carbon::parse($user->tanggal_selesai)->startOfDay()->lt($today)) {
+            return 'Masa magang kamu sudah selesai, sehingga penambahan logbook baru dinonaktifkan.';
+        }
+
+        return null;
+    }
+
+    /**
      * Get logbook data for current user, optionally filtered by date
      */
     public function getData(Request $request)
@@ -104,6 +122,15 @@ class LogbookController extends Controller
     public function store(Request $request)
     {
         try {
+            $user = Auth::user();
+            $createBlockReason = $this->getLogbookCreateBlockReason($user);
+            if ($createBlockReason) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $createBlockReason,
+                ], 403);
+            }
+
             $request->validate([
                 'tanggal' => 'required|date',
                 'aktivitas' => 'required|string|max:255',
@@ -113,7 +140,7 @@ class LogbookController extends Controller
             ]);
 
             $logbook = Logbook::create([
-                'user_id' => Auth::id(),
+                'user_id' => $user->id,
                 'tanggal' => $request->tanggal,
                 'aktivitas' => $request->aktivitas,
                 'deskripsi' => $request->deskripsi,
