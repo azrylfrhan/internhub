@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -36,11 +37,15 @@ class PesertaManagementController extends Controller
 
         $validated = $validator->validated();
 
+        $createdDate = Carbon::today();
+        $endDate = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+        $shouldArchive = $endDate->lt($createdDate);
+
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make('password123'),
-            'role' => 'magang',
+            'role' => $shouldArchive ? 'alumni' : 'magang',
             'instansi' => $validated['instansi'],
             'nomor_telepon' => $validated['nomor_telepon'],
             'tanggal_mulai' => $validated['tanggal_mulai'],
@@ -48,9 +53,14 @@ class PesertaManagementController extends Controller
             'alamat' => $validated['alamat'] ?? null,
         ]);
 
+        $message = 'Peserta baru berhasil ditambahkan. Password default: password123';
+        if ($shouldArchive) {
+            $message .= ' Tanggal selesai sebelum tanggal pembuatan akun, peserta otomatis masuk arsip.';
+        }
+
         return redirect()
             ->route('admin.peserta.detail')
-            ->with('success', 'Peserta baru berhasil ditambahkan. Password default: password123');
+            ->with('success', $message);
     }
 
     /**
@@ -86,6 +96,10 @@ class PesertaManagementController extends Controller
 
         $validated = $validator->validated();
 
+        $accountCreatedDate = optional($peserta->created_at)->copy()->startOfDay() ?? now()->startOfDay();
+        $endDate = Carbon::parse($validated['edit_tanggal_selesai'])->startOfDay();
+        $shouldArchive = $endDate->lt($accountCreatedDate);
+
         $updatePayload = [
             'name' => $validated['edit_name'],
             'email' => $validated['edit_email'],
@@ -94,6 +108,7 @@ class PesertaManagementController extends Controller
             'tanggal_mulai' => $validated['edit_tanggal_mulai'],
             'tanggal_selesai' => $validated['edit_tanggal_selesai'],
             'alamat' => $validated['edit_alamat'] ?? null,
+            'role' => $shouldArchive ? 'alumni' : 'magang',
         ];
 
         if (!empty($validated['edit_password'])) {
@@ -102,9 +117,14 @@ class PesertaManagementController extends Controller
 
         $peserta->update($updatePayload);
 
+        $message = 'Data peserta berhasil diperbarui.';
+        if ($shouldArchive) {
+            $message .= ' Peserta otomatis dipindahkan ke arsip karena tanggal selesai sebelum tanggal pembuatan akun.';
+        }
+
         return redirect()
             ->route('admin.peserta.detail')
-            ->with('success', 'Data peserta berhasil diperbarui.');
+            ->with('success', $message);
     }
 
     /**

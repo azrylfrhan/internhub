@@ -39,6 +39,10 @@
     }
 
     $pesertaList = \App\Models\User::where('role', 'magang')
+        ->where(function ($q) {
+            $q->whereNull('tanggal_selesai')
+              ->orWhereDate('tanggal_selesai', '>=', now()->toDateString());
+        })
         ->orderBy('name')
         ->paginate($aktifPerPage, ['*'], 'aktif_page');
 

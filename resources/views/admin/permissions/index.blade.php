@@ -9,6 +9,18 @@
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Tinjau dan proses pengajuan izin peserta magang.</p>
     </div>
 
+    @if(session('success'))
+        <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-900/30 dark:text-emerald-200">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-800/60 dark:bg-rose-900/30 dark:text-rose-200">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Total</p>
