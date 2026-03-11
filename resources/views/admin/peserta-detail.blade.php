@@ -519,6 +519,26 @@
                 <textarea id="edit_alamat" name="edit_alamat" rows="3" class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" placeholder="Opsional">{{ old('edit_alamat') }}</textarea>
             </div>
 
+            @if(auth()->user()->role === 'admin')
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/30">
+                <div class="mb-3">
+                    <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Kolom Reset Password</h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">Isi dua kolom di bawah hanya saat ingin mengganti password peserta. Minimal 8 karakter.</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                        <label for="edit_password" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Password Baru</label>
+                        <input id="edit_password" name="edit_password" type="password" class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
+                    </div>
+                    <div>
+                        <label for="edit_password_confirmation" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Konfirmasi Password Baru</label>
+                        <input id="edit_password_confirmation" name="edit_password_confirmation" type="password" class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <div class="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
                 <button type="button" onclick="closeEditPesertaModal()" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">Batal</button>
                 <button type="submit" class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Simpan Perubahan</button>

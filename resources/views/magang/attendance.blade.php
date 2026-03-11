@@ -3,7 +3,7 @@
 @section('title', 'Absensi')
 
 @section('content')
-<div class="space-y-6" x-data="{ openModalIzin: {{ ($errors->has('start_date') || $errors->has('end_date') || $errors->has('reason')) ? 'true' : 'false' }} }" @keydown.escape.window="openModalIzin = false">
+<div class="space-y-6" x-data="{ openModalIzin: {{ ($errors->has('permission_type') || $errors->has('reason') || $errors->has('medical_document')) ? 'true' : 'false' }}, permissionType: '{{ old('permission_type', 'sakit') }}' }" @keydown.escape.window="openModalIzin = false">
     <!-- Today's Attendance Status -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div class="text-center">
@@ -14,9 +14,6 @@
             </div>
             <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Absensi Hari Ini</h2>
             <p class="text-gray-600 dark:text-gray-300 mb-4">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
-
-
-
 
             <!-- Status Absensi -->
             <div id="attendance-status" class="mb-6">
@@ -46,43 +43,287 @@
         </div>
     </div>
 
+    <!-- Modal Ajukan Izin -->
     <div
         x-show="openModalIzin"
-        x-transition.opacity
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
         x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+        class="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:px-4 bg-black/60 backdrop-blur-sm"
         @click.self="openModalIzin = false"
     >
+        <!-- Modal card: flex column, max height set HERE, not on form -->
         <div
             x-show="openModalIzin"
-            x-transition
-            class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-800"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave-end="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
+            class="relative flex w-full flex-col sm:max-w-lg rounded-t-3xl sm:rounded-3xl bg-white dark:bg-gray-900 shadow-2xl border border-gray-200 dark:border-gray-700"
+            style="max-height: 92dvh; max-height: 92vh;"
         >
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Ajukan Izin</h3>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Isi rentang tanggal dan alasan izin untuk diproses mentor/admin.</p>
+            <!-- Accent gradient bar -->
+            <div class="h-1.5 w-full flex-shrink-0 rounded-t-3xl sm:rounded-t-3xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500"></div>
 
-            <form method="POST" action="{{ route('magang.permissions.store') }}" class="mt-5 space-y-4">
+            <!-- Drag handle (mobile only) -->
+            <div class="flex flex-shrink-0 justify-center pb-1 pt-2.5 sm:hidden">
+                <div class="h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+            </div>
+
+            <!-- Header (flex-shrink-0 so it never gets compressed) -->
+            <div class="flex flex-shrink-0 items-center justify-between gap-3 px-5 pt-3 pb-4 sm:px-6 sm:pt-5">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-800/60">
+                        <svg class="h-5 w-5 text-amber-600 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 class="text-base font-bold text-gray-900 dark:text-white">Ajukan Izin</h3>
+                        <p class="truncate text-xs text-gray-500 dark:text-gray-400">Akan diproses oleh mentor atau admin</p>
+                    </div>
+                </div>
+                <button type="button" @click="openModalIzin = false"
+                    class="flex-shrink-0 rounded-xl p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Form: flex column, fills remaining card height -->
+            <form method="POST" action="{{ route('magang.permissions.store') }}" enctype="multipart/form-data"
+                class="flex min-h-0 flex-1 flex-col">
                 @csrf
 
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                        <label for="start_date" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai</label>
-                        <input type="date" id="start_date" name="start_date" value="{{ old('start_date') }}" required class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-amber-500/30">
-                    </div>
-                    <div>
-                        <label for="end_date" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Selesai</label>
-                        <input type="date" id="end_date" name="end_date" value="{{ old('end_date') }}" required class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-amber-500/30">
+                <!-- Scrollable body -->
+                <div class="flex-1 overflow-y-auto px-5 pb-2 sm:px-6">
+                    <div class="space-y-4 pb-4">
+
+                        <!-- Tanggal info card -->
+                        <div class="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-700/50 dark:bg-amber-900/40">
+                            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-200/70 dark:bg-amber-800/70">
+                                <svg class="h-5 w-5 text-amber-700 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">Tanggal Pengajuan</p>
+                                <p class="text-sm font-bold text-amber-900 dark:text-amber-100">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
+                                <p class="text-xs text-amber-700 dark:text-amber-300">Tanggal izin otomatis sesuai hari ini</p>
+                            </div>
+                        </div>
+
+                        <!-- Jenis Izin — Radio Cards -->
+                        <div>
+                            <p class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                Jenis Izin <span class="text-rose-500">*</span>
+                            </p>
+                            <div class="grid grid-cols-2 gap-3">
+
+                                <!-- Sakit -->
+                                <label class="relative flex cursor-pointer flex-col items-center gap-2.5 rounded-2xl border-2 p-4 transition-all duration-200"
+                                    :class="permissionType === 'sakit'
+                                        ? 'border-amber-400 bg-amber-50 shadow-lg dark:border-amber-400 dark:bg-amber-800/40'
+                                        : 'border-gray-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-amber-500/60 dark:hover:bg-amber-900/20'">
+                                    <input type="radio" name="permission_type" value="sakit" x-model="permissionType" class="sr-only">
+                                    <div class="flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-200"
+                                        :class="permissionType === 'sakit' ? 'bg-amber-200 dark:bg-amber-700/70' : 'bg-gray-100 dark:bg-gray-700'">
+                                        <svg class="h-6 w-6 transition-colors duration-200"
+                                            :class="permissionType === 'sakit' ? 'text-amber-700 dark:text-amber-200' : 'text-gray-400 dark:text-gray-400'"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm font-bold transition-colors duration-200"
+                                        :class="permissionType === 'sakit' ? 'text-amber-800 dark:text-amber-200' : 'text-gray-600 dark:text-gray-300'">
+                                        Sakit
+                                    </span>
+                                    <!-- Checkmark badge -->
+                                    <div class="absolute right-2.5 top-2.5 transition-all duration-200"
+                                        :class="permissionType === 'sakit' ? 'opacity-100 scale-100' : 'opacity-0 scale-75'">
+                                        <div class="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 dark:bg-amber-400">
+                                            <svg class="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Alasan Lain -->
+                                <label class="relative flex cursor-pointer flex-col items-center gap-2.5 rounded-2xl border-2 p-4 transition-all duration-200"
+                                    :class="permissionType === 'lainnya'
+                                        ? 'border-blue-400 bg-blue-50 shadow-lg dark:border-blue-400 dark:bg-blue-800/40'
+                                        : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-blue-500/60 dark:hover:bg-blue-900/20'">
+                                    <input type="radio" name="permission_type" value="lainnya" x-model="permissionType" class="sr-only">
+                                    <div class="flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-200"
+                                        :class="permissionType === 'lainnya' ? 'bg-blue-200 dark:bg-blue-700/70' : 'bg-gray-100 dark:bg-gray-700'">
+                                        <svg class="h-6 w-6 transition-colors duration-200"
+                                            :class="permissionType === 'lainnya' ? 'text-blue-700 dark:text-blue-200' : 'text-gray-400 dark:text-gray-400'"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm font-bold transition-colors duration-200"
+                                        :class="permissionType === 'lainnya' ? 'text-blue-800 dark:text-blue-200' : 'text-gray-600 dark:text-gray-300'">
+                                        Alasan Lain
+                                    </span>
+                                    <!-- Checkmark badge -->
+                                    <div class="absolute right-2.5 top-2.5 transition-all duration-200"
+                                        :class="permissionType === 'lainnya' ? 'opacity-100 scale-100' : 'opacity-0 scale-75'">
+                                        <div class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 dark:bg-blue-400">
+                                            <svg class="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            @error('permission_type')
+                                <p class="mt-2 flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400">
+                                    <svg class="h-3.5 w-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <!-- Dokumen Sakit -->
+                        <div x-show="permissionType === 'sakit'"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
+                            x-cloak>
+                            <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 dark:border-rose-700/60 dark:bg-rose-900/30">
+                                <div class="mb-3 flex items-center gap-2.5">
+                                    <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-rose-200/80 dark:bg-rose-700/60">
+                                        <svg class="h-4 w-4 text-rose-700 dark:text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-rose-800 dark:text-rose-200">Dokumen Izin Sakit</p>
+                                        <p class="text-xs text-rose-600 dark:text-rose-300">Wajib dilampirkan untuk izin sakit</p>
+                                    </div>
+                                </div>
+                                <!-- Upload area -->
+                                <div x-data="{ fileName: null }" class="relative">
+                                    <label for="medical_document"
+                                        class="relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 transition-all"
+                                        :class="fileName
+                                            ? 'border-rose-400 bg-white dark:border-rose-500 dark:bg-gray-800'
+                                            : 'border-rose-300 bg-white hover:border-rose-400 hover:bg-rose-50/80 dark:border-rose-600/70 dark:bg-gray-800/80 dark:hover:border-rose-500 dark:hover:bg-rose-900/25'"
+                                        @dragover.prevent
+                                        @drop.prevent="fileName = $event.dataTransfer.files[0]?.name; $refs.fileInput.files = $event.dataTransfer.files">
+                                        <input type="file" id="medical_document" name="medical_document" accept=".pdf,.jpg,.jpeg,.png"
+                                            class="absolute inset-0 cursor-pointer opacity-0"
+                                            x-ref="fileInput"
+                                            @change="fileName = $event.target.files[0]?.name">
+
+                                        <template x-if="!fileName">
+                                            <div class="flex flex-col items-center gap-2 text-center pointer-events-none">
+                                                <svg class="h-10 w-10 text-rose-400 dark:text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                                </svg>
+                                                <div>
+                                                    <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Klik untuk unggah <span class="text-rose-600 dark:text-rose-300">atau seret file</span></p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">PDF, JPG, PNG — maks. 3 MB</p>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="fileName">
+                                            <div class="flex items-center gap-3 pointer-events-none">
+                                                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-800/60">
+                                                    <svg class="h-5 w-5 text-rose-600 dark:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <p class="truncate text-sm font-bold text-rose-800 dark:text-rose-200" x-text="fileName"></p>
+                                                    <p class="text-xs font-medium text-emerald-700 dark:text-emerald-300">✓ Siap diunggah — klik untuk ganti</p>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </label>
+                                </div>
+                                @error('medical_document')
+                                    <p class="mt-2 flex items-center gap-1 text-xs text-rose-700 dark:text-rose-300">
+                                        <svg class="h-3.5 w-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Alasan Lainnya (textarea) -->
+                        <div x-show="permissionType === 'lainnya'"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
+                            x-cloak>
+                            <div class="rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-700/60 dark:bg-blue-900/30">
+                                <div class="mb-3 flex items-center gap-2.5">
+                                    <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-200/80 dark:bg-blue-700/60">
+                                        <svg class="h-4 w-4 text-blue-700 dark:text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">Keterangan Alasan</p>
+                                        <p class="text-xs text-blue-600 dark:text-blue-300">Jelaskan alasan tidak masuk dengan lengkap</p>
+                                    </div>
+                                </div>
+                                <div x-data="{ charCount: {{ strlen(old('reason', '')) }} }">
+                                    <textarea id="reason" name="reason" rows="4" maxlength="1500"
+                                        placeholder="Contoh: Saya izin tidak masuk karena ada keperluan keluarga yang mendesak..."
+                                        @input="charCount = $event.target.value.length"
+                                        class="w-full resize-none rounded-xl border border-blue-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300/50 dark:border-blue-600/60 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400/25">{{ old('reason') }}</textarea>
+                                    <div class="mt-1.5 flex items-center justify-between">
+                                        @error('reason')
+                                            <p class="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400">
+                                                <svg class="h-3.5 w-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                                {{ $message }}
+                                            </p>
+                                        @else
+                                            <span></span>
+                                        @enderror
+                                        <p class="text-xs"
+                                            :class="charCount > 1400 ? 'text-rose-500 dark:text-rose-400 font-semibold' : 'text-gray-500 dark:text-gray-400'">
+                                            <span x-text="charCount"></span>/1500
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
-                <div>
-                    <label for="reason" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Alasan / Keterangan</label>
-                    <textarea id="reason" name="reason" rows="4" required class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-amber-500/30">{{ old('reason') }}</textarea>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" @click="openModalIzin = false" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">Batal</button>
-                    <button type="submit" class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600">Kirim Izin</button>
+                <!-- Footer tombol — flex-shrink-0 agar selalu kelihatan -->
+                <div class="flex flex-shrink-0 flex-col-reverse gap-2.5 border-t border-gray-200 bg-white px-5 py-4 dark:border-gray-700 dark:bg-gray-900 sm:flex-row sm:justify-end sm:px-6">
+                    <button type="button" @click="openModalIzin = false"
+                        class="w-full rounded-xl border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800 sm:w-auto sm:py-2.5">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-amber-600 bg-amber-600 bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:border-amber-700 hover:bg-amber-700 hover:from-amber-600 hover:to-orange-600 hover:shadow-md active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-400 sm:w-auto sm:py-2.5">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        Kirim Pengajuan
+                    </button>
                 </div>
             </form>
         </div>
@@ -368,14 +609,22 @@ function updateAttendanceUI(data) {
             };
 
             const meta = statusMap[latestPermission.status] || statusMap.pending;
-            const rangeText = `${latestPermission.start_date} s/d ${latestPermission.end_date}`;
+            const typeText = latestPermission.permission_type_label || 'Izin';
+            const detailText = latestPermission.permission_type === 'sakit'
+                ? 'Dokumen izin sakit telah diunggah.'
+                : (latestPermission.reason || '-');
+            const attachmentLink = latestPermission.attachment_url
+                ? `<a href="${latestPermission.attachment_url}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex text-xs font-semibold text-blue-700 underline dark:text-blue-300">Lihat dokumen</a>`
+                : '';
 
             permissionInfoDiv.innerHTML = `
                 <div class="rounded-xl border p-4 ${meta.wrapper}">
                     <div class="flex items-start justify-between gap-3">
                         <div>
                             <p class="text-sm font-semibold ${meta.textClass}">${meta.title}</p>
-                            <p class="mt-1 text-xs ${meta.textClass}">Periode: ${rangeText}</p>
+                            <p class="mt-1 text-xs ${meta.textClass}">Jenis izin: ${typeText}</p>
+                            <p class="mt-1 text-xs ${meta.textClass}">Keterangan: ${detailText}</p>
+                            ${attachmentLink}
                         </div>
                         <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${meta.badgeClass}">${meta.badge}</span>
                     </div>

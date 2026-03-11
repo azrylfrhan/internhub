@@ -70,8 +70,11 @@ class PesertaManagementController extends Controller
             'edit_tanggal_mulai' => ['required', 'date'],
             'edit_tanggal_selesai' => ['required', 'date', 'after_or_equal:edit_tanggal_mulai'],
             'edit_alamat' => ['nullable', 'string'],
+            'edit_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ], [
             'edit_tanggal_selesai.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
+            'edit_password.min' => 'Password baru minimal 8 karakter.',
+            'edit_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
         ]);
 
         if ($validator->fails()) {
@@ -83,7 +86,7 @@ class PesertaManagementController extends Controller
 
         $validated = $validator->validated();
 
-        $peserta->update([
+        $updatePayload = [
             'name' => $validated['edit_name'],
             'email' => $validated['edit_email'],
             'instansi' => $validated['edit_instansi'],
@@ -91,7 +94,13 @@ class PesertaManagementController extends Controller
             'tanggal_mulai' => $validated['edit_tanggal_mulai'],
             'tanggal_selesai' => $validated['edit_tanggal_selesai'],
             'alamat' => $validated['edit_alamat'] ?? null,
-        ]);
+        ];
+
+        if (!empty($validated['edit_password'])) {
+            $updatePayload['password'] = Hash::make((string) $validated['edit_password']);
+        }
+
+        $peserta->update($updatePayload);
 
         return redirect()
             ->route('admin.peserta.detail')
@@ -120,4 +129,5 @@ class PesertaManagementController extends Controller
             ->route('admin.peserta.detail')
             ->with('success', 'Peserta arsip berhasil dihapus permanen dari database.');
     }
+
 }
