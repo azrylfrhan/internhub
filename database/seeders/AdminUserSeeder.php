@@ -23,15 +23,6 @@ class AdminUserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-
-        User::updateOrCreate(
-            ['email' => 'mentor@bps.go.id'],
-            [
-                'name' => 'Mentor BPS',
-                'password' => Hash::make('password'),
-                'role' => 'mentor',
-                'email_verified_at' => now(),
-            ]
-        );
+        
     }
 }

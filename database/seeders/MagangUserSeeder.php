@@ -19,26 +19,6 @@ class MagangUserSeeder extends Seeder
                 'name' => 'Ahmad Rizki',
                 'email' => 'ahmad@bps.go.id',
                 'role' => 'magang'
-            ],
-            [
-                'name' => 'Siti Nurhaliza',
-                'email' => 'siti@bps.go.id',
-                'role' => 'magang'
-            ],
-            [
-                'name' => 'Budi Santoso',
-                'email' => 'budi@bps.go.id',
-                'role' => 'magang'
-            ],
-            [
-                'name' => 'Maya Sari',
-                'email' => 'maya@bps.go.id',
-                'role' => 'magang'
-            ],
-            [
-                'name' => 'Dika Pratama',
-                'email' => 'dika@bps.go.id',
-                'role' => 'magang'
             ]
         ];
 
