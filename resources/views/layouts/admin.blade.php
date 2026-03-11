@@ -26,6 +26,7 @@
     </style>
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
     <script>
         // Initialize theme before page load to prevent flash
         (function() {
@@ -224,5 +225,6 @@
             @endif
         });
     </script>
+    @livewireScripts
 </body>
 </html>
