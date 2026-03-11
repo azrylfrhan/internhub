@@ -19,21 +19,42 @@
 </div>
 
 @php
+    $selectedMonthStart = now()->startOfMonth();
+    $selectedMonthEnd = now()->endOfMonth();
+
     $totalHadirPeserta = \App\Models\Presensi::where('user_id', $user->id)
-        ->whereMonth('tanggal', now()->month)
-        ->whereYear('tanggal', now()->year)
+        ->whereBetween('tanggal', [$selectedMonthStart, $selectedMonthEnd])
         ->whereIn('status', ['hadir', 'terlambat'])
         ->count();
 
-    $totalIzinAlpaPeserta = \App\Models\Presensi::where('user_id', $user->id)
-        ->whereMonth('tanggal', now()->month)
-        ->whereYear('tanggal', now()->year)
-        ->whereIn('status', ['izin', 'alpa'])
+    $initialAlpaPeserta = \App\Models\Presensi::where('user_id', $user->id)
+        ->whereBetween('tanggal', [$selectedMonthStart, $selectedMonthEnd])
+        ->where('status', 'alpa')
         ->count();
 
+    $initialIzinPeserta = 0;
+    $initialPermissions = \App\Models\Permission::where('user_id', $user->id)
+        ->where('status', 'approved')
+        ->whereDate('start_date', '<=', $selectedMonthEnd->toDateString())
+        ->whereDate('end_date', '>=', $selectedMonthStart->toDateString())
+        ->get();
+
+    foreach ($initialPermissions as $permission) {
+        $cursor = \Carbon\Carbon::parse($permission->start_date)->startOfDay();
+        $rangeEnd = \Carbon\Carbon::parse($permission->end_date)->endOfDay();
+
+        while ($cursor->lessThanOrEqualTo($rangeEnd)) {
+            if ($cursor->betweenIncluded($selectedMonthStart, $selectedMonthEnd)) {
+                $initialIzinPeserta++;
+            }
+            $cursor->addDay();
+        }
+    }
+
+    $totalIzinAlpaPeserta = $initialIzinPeserta + $initialAlpaPeserta;
+
     $totalLogbookPeserta = \App\Models\Logbook::where('user_id', $user->id)
-        ->whereMonth('tanggal', now()->month)
-        ->whereYear('tanggal', now()->year)
+        ->whereBetween('tanggal', [$selectedMonthStart->toDateString(), $selectedMonthEnd->toDateString()])
         ->count();
 @endphp
 
@@ -148,12 +169,12 @@
             <span class="text-gray-700">Terlambat</span>
         </div>
         <div class="flex items-center space-x-2">
-            <div class="w-4 h-4 bg-gray-200 rounded"></div>
-            <span class="text-gray-700">Tidak Hadir</span>
+            <div class="w-4 h-4 bg-indigo-100 rounded"></div>
+            <span class="text-gray-700">Izin</span>
         </div>
         <div class="flex items-center space-x-2">
-            <div class="w-4 h-4 bg-gray-100 rounded"></div>
-            <span class="text-gray-700">Belum Ada</span>
+            <div class="w-4 h-4 bg-gray-200 rounded"></div>
+            <span class="text-gray-700">Alpa / Belum Ada</span>
         </div>
     </div>
 </div>
@@ -228,9 +249,12 @@ async function renderCalendar(year, month) {
                 } else if (presensi.status === 'terlambat') {
                     bgColor = 'bg-orange-100 text-orange-700';
                     statusText = '⏱';
-                } else if (presensi.status === 'izin' || presensi.status === 'alpa') {
+                } else if (presensi.status === 'izin') {
+                    bgColor = 'bg-indigo-100 text-indigo-700';
+                    statusText = 'I';
+                } else if (presensi.status === 'alpa') {
                     bgColor = 'bg-gray-200 text-gray-700';
-                    statusText = '—';
+                    statusText = 'A';
                 }
             }
 
@@ -324,6 +348,12 @@ async function openModalDetail(dateStr) {
         } else if (status === 'terlambat') {
             statusBgClass = 'bg-orange-100 dark:bg-orange-900/30';
             statusTextClass = 'text-orange-800 dark:text-orange-300';
+        } else if (status === 'izin') {
+            statusBgClass = 'bg-indigo-100 dark:bg-indigo-900/30';
+            statusTextClass = 'text-indigo-800 dark:text-indigo-300';
+        } else if (status === 'alpa') {
+            statusBgClass = 'bg-gray-200 dark:bg-gray-700';
+            statusTextClass = 'text-gray-800 dark:text-gray-200';
         }
 
         let content = `
@@ -338,6 +368,7 @@ async function openModalDetail(dateStr) {
                     <div class="grid grid-cols-1 gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
                         <p>Jam Datang: <span class="font-semibold text-gray-900 dark:text-white">${presensi?.jam_masuk || '—'}</span></p>
                         <p>Jam Pulang: <span class="font-semibold text-gray-900 dark:text-white">${presensi?.jam_pulang || '—'}</span></p>
+                        <p class="sm:col-span-2">Keterangan: <span class="font-semibold text-gray-900 dark:text-white">${presensi?.keterangan || '—'}</span></p>
                     </div>
                 </div>
 

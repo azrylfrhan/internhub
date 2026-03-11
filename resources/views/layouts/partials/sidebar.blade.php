@@ -64,6 +64,15 @@
                 </a>
             </li>
 
+            <li>
+                <a href="{{ route('admin.permissions.index') }}" class="menu-item group {{ request()->routeIs('admin.permissions.*') ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/20 dark:text-blue-200 dark:ring-blue-400/40' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white' }}" :class="(sidebarExpanded || isMobile) ? '' : 'justify-center px-2'">
+                    <svg class="h-5 w-5 {{ request()->routeIs('admin.permissions.*') ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"></path>
+                    </svg>
+                    <span x-show="sidebarExpanded" x-transition.opacity.duration.150ms class="menu-item-text">Daftar Izin</span>
+                </a>
+            </li>
+
             @if(Auth::user()?->role === 'admin')
             <li>
                 <a href="{{ route('admin.management.index') }}" class="menu-item group {{ request()->routeIs('admin.management.*') ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/20 dark:text-blue-200 dark:ring-blue-400/40' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white' }}" :class="(sidebarExpanded || isMobile) ? '' : 'justify-center px-2'">

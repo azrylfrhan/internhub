@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Presensi;
 use App\Models\Logbook;
+use App\Models\Permission;
 use App\Models\CustomWorkingDay;
 use App\Models\Setting;
 use Illuminate\Http\Request;
@@ -30,6 +31,19 @@ class PresensiController extends Controller
         $today = Carbon::today('Asia/Makassar');
         $now = Carbon::now('Asia/Makassar');
         $todayWita = $now->copy()->startOfDay();
+
+        $approvedPermissionToday = Permission::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->first();
+
+        if ($approvedPermissionToday) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda memiliki izin yang sudah disetujui untuk hari ini, absen masuk tidak diperlukan.'
+            ], 400);
+        }
 
         // Cek apakah sudah absen hari ini
         $existingPresensi = Presensi::where('user_id', $user->id)
@@ -104,6 +118,12 @@ class PresensiController extends Controller
         $user = Auth::user();
         $today = Carbon::today('Asia/Makassar');
         $now = Carbon::now('Asia/Makassar');
+
+        $approvedPermissionToday = Permission::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->first();
         $todayWita = $now->copy()->startOfDay();
 
         // Cari presensi hari ini
@@ -294,6 +314,22 @@ class PresensiController extends Controller
         $today = Carbon::today('Asia/Makassar');
         $now = Carbon::now('Asia/Makassar');
 
+        $approvedPermissionToday = Permission::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->latest('updated_at')
+            ->first();
+
+        $latestPermission = Permission::where('user_id', $user->id)
+            ->latest('updated_at')
+            ->first();
+
+        $pendingPermissionActive = Permission::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->whereDate('end_date', '>=', $today)
+            ->exists();
+
         $presensi = Presensi::where('user_id', $user->id)
             ->where('tanggal', $today)
             ->first();
@@ -310,11 +346,28 @@ class PresensiController extends Controller
         $sudah_absen_masuk = $presensi ? true : false;
         $sudah_absen_pulang = $presensi && $presensi->jam_pulang ? true : false;
         $sudah_hadir_hari_ini = $presensi && $presensi->jam_masuk && $presensi->jam_pulang;
+        $has_approved_permission_today = (bool) $approvedPermissionToday;
         
         return response()->json([
             'sudah_absen_masuk' => $sudah_absen_masuk,
             'sudah_absen_pulang' => $sudah_absen_pulang,
             'sudah_hadir_hari_ini' => $sudah_hadir_hari_ini,
+            'has_approved_permission_today' => $has_approved_permission_today,
+            'has_pending_permission_active' => $pendingPermissionActive,
+            'can_submit_permission' => !$has_approved_permission_today && !$pendingPermissionActive,
+            'permission' => $approvedPermissionToday ? [
+                'start_date' => $approvedPermissionToday->start_date->toDateString(),
+                'end_date' => $approvedPermissionToday->end_date->toDateString(),
+                'reason' => $approvedPermissionToday->reason,
+            ] : null,
+            'latest_permission' => $latestPermission ? [
+                'id' => $latestPermission->id,
+                'start_date' => $latestPermission->start_date->toDateString(),
+                'end_date' => $latestPermission->end_date->toDateString(),
+                'reason' => $latestPermission->reason,
+                'status' => $latestPermission->status,
+                'updated_at' => optional($latestPermission->updated_at)->toIso8601String(),
+            ] : null,
             'data' => $presensi ? [
                 'jam_masuk' => $presensi->jam_masuk,
                 'jam_pulang' => $presensi->jam_pulang,
@@ -372,6 +425,12 @@ class PresensiController extends Controller
             ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
             ->get();
 
+        $permissions = Permission::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $endOfMonth->toDateString())
+            ->whereDate('end_date', '>=', $startOfMonth->toDateString())
+            ->get();
+
         $calendar = [];
         foreach ($presensis as $presensi) {
             $calendar[$presensi->tanggal->format('Y-m-d')] = [
@@ -381,8 +440,27 @@ class PresensiController extends Controller
             ];
         }
 
+        foreach ($permissions as $permission) {
+            $cursor = Carbon::parse($permission->start_date)->startOfDay();
+            $rangeEnd = Carbon::parse($permission->end_date)->endOfDay();
+
+            while ($cursor->lessThanOrEqualTo($rangeEnd)) {
+                if ($cursor->betweenIncluded($startOfMonth, $endOfMonth)) {
+                    $dateStr = $cursor->format('Y-m-d');
+                    $calendar[$dateStr] = [
+                        'status' => 'izin',
+                        'jam_masuk' => null,
+                        'jam_pulang' => null,
+                    ];
+                }
+                $cursor->addDay();
+            }
+        }
+
         $hadirCount = $presensis->whereIn('status', ['hadir', 'terlambat'])->count();
-        $izinAlpaCount = $presensis->whereIn('status', ['izin', 'alpa'])->count();
+        $alpaCount = $presensis->where('status', 'alpa')->count();
+        $izinCount = collect($calendar)->where('status', 'izin')->count();
+        $izinAlpaCount = $izinCount + $alpaCount;
         $logbookCount = Logbook::where('user_id', $user->id)
             ->whereBetween('tanggal', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
             ->count();
@@ -416,6 +494,22 @@ class PresensiController extends Controller
             ->whereDate('tanggal', $date->toDateString())
             ->first();
 
+        $permission = Permission::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $date->toDateString())
+            ->whereDate('end_date', '>=', $date->toDateString())
+            ->latest('updated_at')
+            ->first();
+
+        if ($permission) {
+            $presensi = new Presensi([
+                'status' => 'izin',
+                'keterangan' => $permission->reason,
+                'jam_masuk' => null,
+                'jam_pulang' => null,
+            ]);
+        }
+
         $logbook = \App\Models\Logbook::where('user_id', $user->id)
             ->whereDate('tanggal', $date->toDateString())
             ->first();
@@ -427,6 +521,7 @@ class PresensiController extends Controller
                 'status' => $presensi->status,
                 'jam_masuk' => $presensi->jam_masuk,
                 'jam_pulang' => $presensi->jam_pulang,
+                'keterangan' => $presensi->keterangan,
             ] : null,
             'logbook' => $logbook ? [
                 'aktivitas' => $logbook->aktivitas,
@@ -464,6 +559,22 @@ class PresensiController extends Controller
             ->whereDate('tanggal', $date->toDateString())
             ->first();
 
+        $permission = Permission::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $date->toDateString())
+            ->whereDate('end_date', '>=', $date->toDateString())
+            ->latest('updated_at')
+            ->first();
+
+        if ($permission) {
+            $presensi = new Presensi([
+                'status' => 'izin',
+                'keterangan' => $permission->reason,
+                'jam_masuk' => null,
+                'jam_pulang' => null,
+            ]);
+        }
+
         $logbook = \App\Models\Logbook::where('user_id', $user->id)
             ->whereDate('tanggal', $date->toDateString())
             ->first();
@@ -480,6 +591,7 @@ class PresensiController extends Controller
                 'status' => $presensi->status,
                 'jam_masuk' => $presensi->jam_masuk,
                 'jam_pulang' => $presensi->jam_pulang,
+                'keterangan' => $presensi->keterangan,
             ] : null,
             'logbook' => $logbook ? [
                 'aktivitas' => $logbook->aktivitas,
@@ -528,23 +640,83 @@ class PresensiController extends Controller
             ->whereBetween('tanggal', [$startDate, $endDate])
             ->orderBy('tanggal');
 
-        if ($status) {
-            $query->where('status', $status);
-        }
         if ($userId) {
             $query->where('user_id', $userId);
         }
 
-        $rows = $query->get()->map(function ($p) {
+        $permissionsQuery = Permission::with('user')
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $endDate->toDateString())
+            ->whereDate('end_date', '>=', $startDate->toDateString());
+
+        if ($userId) {
+            $permissionsQuery->where('user_id', $userId);
+        }
+
+        $permissions = $permissionsQuery->get();
+        $permissionMap = [];
+
+        foreach ($permissions as $permission) {
+            $cursor = Carbon::parse($permission->start_date)->startOfDay();
+            $rangeEnd = Carbon::parse($permission->end_date)->endOfDay();
+
+            while ($cursor->lessThanOrEqualTo($rangeEnd)) {
+                if ($cursor->betweenIncluded($startDate, $endDate)) {
+                    $key = $permission->user_id . '|' . $cursor->format('Y-m-d');
+                    $permissionMap[$key] = [
+                        'user' => $permission->user,
+                        'reason' => $permission->reason,
+                    ];
+                }
+                $cursor->addDay();
+            }
+        }
+
+        $rows = $query->get()->map(function ($p) use ($permissionMap) {
+            $key = $p->user_id . '|' . $p->tanggal->format('Y-m-d');
+            $permission = $permissionMap[$key] ?? null;
+
             return [
                 'tanggal' => $p->tanggal->format('Y-m-d'),
                 'nama' => $p->user->name ?? '-',
                 'email' => $p->user->email ?? '-',
-                'status' => $p->status,
-                'jam_masuk' => $p->jam_masuk,
-                'jam_pulang' => $p->jam_pulang,
+                'status' => $permission ? 'izin' : $p->status,
+                'jam_masuk' => $permission ? null : $p->jam_masuk,
+                'jam_pulang' => $permission ? null : $p->jam_pulang,
+                'keterangan' => $permission['reason'] ?? $p->keterangan,
             ];
-        });
+        })->values();
+
+        foreach ($permissionMap as $key => $meta) {
+            [$permissionUserId, $dateStr] = explode('|', $key);
+            $alreadyExists = $rows->contains(function ($row) use ($dateStr, $meta) {
+                return ($row['tanggal'] ?? null) === $dateStr
+                    && ($row['email'] ?? null) === ($meta['user']->email ?? null);
+            });
+
+            if (!$alreadyExists) {
+                $rows->push([
+                    'tanggal' => $dateStr,
+                    'nama' => $meta['user']->name ?? '-',
+                    'email' => $meta['user']->email ?? '-',
+                    'status' => 'izin',
+                    'jam_masuk' => null,
+                    'jam_pulang' => null,
+                    'keterangan' => $meta['reason'],
+                ]);
+            }
+        }
+
+        if ($status) {
+            $rows = $rows->where('status', $status)->values();
+        }
+
+        $rows = $rows
+            ->sortBy([
+                ['tanggal', 'asc'],
+                ['nama', 'asc'],
+            ])
+            ->values();
 
         $stat = [
             'total' => $rows->count(),
@@ -806,8 +978,26 @@ class PresensiController extends Controller
             $presensi = Presensi::where('user_id', $peserta->id)
                 ->where('tanggal', $today)
                 ->first();
+
+            $permissionToday = Permission::where('user_id', $peserta->id)
+                ->where('status', 'approved')
+                ->whereDate('start_date', '<=', $today)
+                ->whereDate('end_date', '>=', $today)
+                ->latest('updated_at')
+                ->first();
             
-            if ($presensi) {
+            if ($permissionToday) {
+                $hadir[] = [
+                    'id' => $peserta->id,
+                    'name' => $peserta->name,
+                    'email' => $peserta->email,
+                    'jam_masuk' => '-',
+                    'jam_pulang' => '-',
+                    'status' => 'izin',
+                    'keterangan' => $permissionToday->reason,
+                    'sudah_pulang' => true,
+                ];
+            } elseif ($presensi) {
                 $hadir[] = [
                     'id' => $peserta->id,
                     'name' => $peserta->name,
@@ -815,6 +1005,7 @@ class PresensiController extends Controller
                     'jam_masuk' => $presensi->jam_masuk,
                     'jam_pulang' => $presensi->jam_pulang,
                     'status' => $presensi->status,
+                    'keterangan' => $presensi->keterangan,
                     'sudah_pulang' => $presensi->jam_pulang ? true : false,
                 ];
             } else {
@@ -873,6 +1064,12 @@ class PresensiController extends Controller
             ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
             ->get();
 
+        $permissions = Permission::where('user_id', $userId)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $endOfMonth->toDateString())
+            ->whereDate('end_date', '>=', $startOfMonth->toDateString())
+            ->get();
+
         $calendar = [];
         foreach ($presensis as $presensi) {
             $calendar[$presensi->tanggal->format('Y-m-d')] = [
@@ -882,8 +1079,27 @@ class PresensiController extends Controller
             ];
         }
 
+        foreach ($permissions as $permission) {
+            $cursor = Carbon::parse($permission->start_date)->startOfDay();
+            $rangeEnd = Carbon::parse($permission->end_date)->endOfDay();
+
+            while ($cursor->lessThanOrEqualTo($rangeEnd)) {
+                if ($cursor->betweenIncluded($startOfMonth, $endOfMonth)) {
+                    $dateStr = $cursor->format('Y-m-d');
+                    $calendar[$dateStr] = [
+                        'status' => 'izin',
+                        'jam_masuk' => null,
+                        'jam_pulang' => null,
+                    ];
+                }
+                $cursor->addDay();
+            }
+        }
+
         $hadirCount = $presensis->whereIn('status', ['hadir', 'terlambat'])->count();
-        $izinAlpaCount = $presensis->whereIn('status', ['izin', 'alpa'])->count();
+        $alpaCount = $presensis->where('status', 'alpa')->count();
+        $izinCount = collect($calendar)->where('status', 'izin')->count();
+        $izinAlpaCount = $izinCount + $alpaCount;
         $logbookCount = Logbook::where('user_id', $userId)
             ->whereBetween('tanggal', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
             ->count();

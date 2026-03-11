@@ -3,7 +3,7 @@
 @section('title', 'Absensi')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-6" x-data="{ openModalIzin: {{ ($errors->has('start_date') || $errors->has('end_date') || $errors->has('reason')) ? 'true' : 'false' }} }" @keydown.escape.window="openModalIzin = false">
     <!-- Today's Attendance Status -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div class="text-center">
@@ -23,10 +23,68 @@
                 <!-- Status akan diupdate oleh JavaScript -->
             </div>
 
+            <div id="permission-status-info" class="mb-6"></div>
+
             <!-- Tombol Absen -->
             <div id="attendance-buttons" class="space-y-4">
                 <!-- Tombol akan diupdate oleh JavaScript -->
             </div>
+
+            <div id="permission-submit-wrapper" class="mt-3">
+                <button
+                    id="btn-ajukan-izin"
+                    type="button"
+                    @click="openModalIzin = true"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                >
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
+                    </svg>
+                    Ajukan Izin
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div
+        x-show="openModalIzin"
+        x-transition.opacity
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+        @click.self="openModalIzin = false"
+    >
+        <div
+            x-show="openModalIzin"
+            x-transition
+            class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-800"
+        >
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Ajukan Izin</h3>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Isi rentang tanggal dan alasan izin untuk diproses mentor/admin.</p>
+
+            <form method="POST" action="{{ route('magang.permissions.store') }}" class="mt-5 space-y-4">
+                @csrf
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <label for="start_date" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai</label>
+                        <input type="date" id="start_date" name="start_date" value="{{ old('start_date') }}" required class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-amber-500/30">
+                    </div>
+                    <div>
+                        <label for="end_date" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Selesai</label>
+                        <input type="date" id="end_date" name="end_date" value="{{ old('end_date') }}" required class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-amber-500/30">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="reason" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Alasan / Keterangan</label>
+                    <textarea id="reason" name="reason" rows="4" required class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-amber-500/30">{{ old('reason') }}</textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="openModalIzin = false" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">Batal</button>
+                    <button type="submit" class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600">Kirim Izin</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -73,7 +131,7 @@
         </div>
         
         <!-- Loading overlay untuk kalender -->
-        <div id="calendar-loading" class="hidden absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 flex items-center justify-center rounded-lg z-10">
+        <div id="calendar-loading" class="hidden absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 items-center justify-center rounded-lg z-10">
             <div class="flex flex-col items-center">
                 <svg class="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -109,12 +167,12 @@
                 <span class="text-gray-700 dark:text-gray-300">Terlambat</span>
             </div>
             <div class="flex items-center space-x-2">
-                <div class="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                <span class="text-gray-700 dark:text-gray-300">Tidak Hadir</span>
+                <div class="w-4 h-4 bg-indigo-100 dark:bg-indigo-900/30 rounded"></div>
+                <span class="text-gray-700 dark:text-gray-300">Izin</span>
             </div>
             <div class="flex items-center space-x-2">
-                <div class="w-4 h-4 bg-gray-100 dark:bg-gray-800 rounded"></div>
-                <span class="text-gray-700 dark:text-gray-300">Belum Ada</span>
+                <div class="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <span class="text-gray-700 dark:text-gray-300">Alpa / Belum Ada</span>
             </div>
         </div>
     </div>
@@ -244,8 +302,9 @@ function getCurrentLocation() {
 // Fungsi untuk memuat status absensi hari ini
 async function loadAttendanceStatus() {
     try {
-        const response = await fetch('/presensi/status-hari-ini', {
+        const response = await fetch(`/presensi/status-hari-ini?ts=${Date.now()}`, {
             method: 'GET',
+            cache: 'no-store',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json'
@@ -265,8 +324,100 @@ async function loadAttendanceStatus() {
 function updateAttendanceUI(data) {
     const statusDiv = document.getElementById('attendance-status');
     const buttonsDiv = document.getElementById('attendance-buttons');
+    const permissionInfoDiv = document.getElementById('permission-status-info');
+    const permissionSubmitWrapper = document.getElementById('permission-submit-wrapper');
 
-    if (data.sudah_hadir_hari_ini) {
+    if (permissionSubmitWrapper) {
+        // Tombol Ajukan Izin hanya muncul jika bisa submit dan belum absen masuk
+        if (data.can_submit_permission && !data.sudah_absen_masuk && !data.sudah_hadir_hari_ini) {
+            permissionSubmitWrapper.classList.remove('hidden');
+        } else {
+            permissionSubmitWrapper.classList.add('hidden');
+        }
+    }
+
+    if (permissionInfoDiv) {
+        const latestPermission = data.latest_permission;
+        const todayStr = new Date().toISOString().slice(0, 10);
+        // Hanya tampilkan notifikasi izin jika ada pengajuan dan masih relevan (end_date >= hari ini)
+        if (!latestPermission || latestPermission.end_date < todayStr) {
+            permissionInfoDiv.innerHTML = '';
+        } else {
+            const statusMap = {
+                pending: {
+                    title: 'Pengajuan izin sedang diproses',
+                    badge: 'Pending',
+                    wrapper: 'bg-amber-50 border-amber-200',
+                    badgeClass: 'bg-amber-100 text-amber-700',
+                    textClass: 'text-amber-800'
+                },
+                approved: {
+                    title: 'Pengajuan izin disetujui',
+                    badge: 'Approved',
+                    wrapper: 'bg-green-50 border-green-200',
+                    badgeClass: 'bg-green-100 text-green-700',
+                    textClass: 'text-green-800'
+                },
+                rejected: {
+                    title: 'Pengajuan izin ditolak',
+                    badge: 'Rejected',
+                    wrapper: 'bg-rose-50 border-rose-200',
+                    badgeClass: 'bg-rose-100 text-rose-700',
+                    textClass: 'text-rose-800'
+                }
+            };
+
+            const meta = statusMap[latestPermission.status] || statusMap.pending;
+            const rangeText = `${latestPermission.start_date} s/d ${latestPermission.end_date}`;
+
+            permissionInfoDiv.innerHTML = `
+                <div class="rounded-xl border p-4 ${meta.wrapper}">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold ${meta.textClass}">${meta.title}</p>
+                            <p class="mt-1 text-xs ${meta.textClass}">Periode: ${rangeText}</p>
+                        </div>
+                        <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${meta.badgeClass}">${meta.badge}</span>
+                    </div>
+                </div>
+            `;
+
+            if (latestPermission.status === 'approved' || latestPermission.status === 'rejected') {
+                const statusNoticeKey = `permission-status-seen-${latestPermission.id}-${latestPermission.status}-${latestPermission.updated_at}`;
+                if (!localStorage.getItem(statusNoticeKey)) {
+                    showMessage(
+                        latestPermission.status === 'approved'
+                            ? 'Pengajuan izin kamu sudah disetujui.'
+                            : 'Pengajuan izin kamu ditolak. Silakan cek kembali detailnya.',
+                        latestPermission.status === 'approved' ? 'success' : 'error'
+                    );
+                    localStorage.setItem(statusNoticeKey, '1');
+                }
+            }
+        }
+    }
+
+    if (data.has_approved_permission_today) {
+        const extraInfo = data.sudah_absen_masuk
+            ? '<p class="mt-2 text-xs text-amber-700">Catatan: absensi masuk sudah tercatat sebelumnya.</p>'
+            : '';
+
+        statusDiv.innerHTML = `
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-amber-900 mb-2">Izin Disetujui Untuk Hari Ini</h3>
+                    <p class="text-amber-700">Absen masuk disembunyikan karena kamu sedang izin.</p>
+                    ${extraInfo}
+                </div>
+            </div>
+        `;
+        buttonsDiv.innerHTML = '';
+    } else if (data.sudah_hadir_hari_ini) {
         // Sudah absen masuk dan pulang, tidak bisa absen lagi hari ini
         statusDiv.innerHTML = `
             <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center">
@@ -483,7 +634,9 @@ let currentMonth = new Date().getMonth() + 1; // JavaScript months are 0-indexed
 
 async function renderCalendar(year = currentYear, month = currentMonth) {
     // Show loading overlay
-    document.getElementById('calendar-loading').classList.remove('hidden');
+    const calendarLoading = document.getElementById('calendar-loading');
+    calendarLoading.classList.remove('hidden');
+    calendarLoading.classList.add('flex');
     
     try {
         const response = await fetch(`/presensi/bulan-ini?year=${year}&month=${month}`, {
@@ -533,9 +686,12 @@ async function renderCalendar(year = currentYear, month = currentMonth) {
                 } else if (presensi.status === 'terlambat') {
                     bgColor = 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300';
                     statusText = '⏱';
-                } else if (presensi.status === 'izin' || presensi.status === 'alpa') {
+                } else if (presensi.status === 'izin') {
+                    bgColor = 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300';
+                    statusText = 'I';
+                } else if (presensi.status === 'alpa') {
                     bgColor = 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200';
-                    statusText = '—';
+                    statusText = 'A';
                 }
             }
             
@@ -555,7 +711,8 @@ async function renderCalendar(year = currentYear, month = currentMonth) {
         console.error('Error rendering calendar:', error);
     } finally {
         // Hide loading overlay
-        document.getElementById('calendar-loading').classList.add('hidden');
+        calendarLoading.classList.remove('flex');
+        calendarLoading.classList.add('hidden');
     }
 }
 
@@ -617,6 +774,12 @@ async function openModalDetail(dateStr) {
         } else if (status === 'terlambat') {
             statusBgClass = 'bg-orange-100 dark:bg-orange-900/30';
             statusTextClass = 'text-orange-800 dark:text-orange-300';
+        } else if (status === 'izin') {
+            statusBgClass = 'bg-indigo-100 dark:bg-indigo-900/30';
+            statusTextClass = 'text-indigo-800 dark:text-indigo-300';
+        } else if (status === 'alpa') {
+            statusBgClass = 'bg-gray-200 dark:bg-gray-700';
+            statusTextClass = 'text-gray-800 dark:text-gray-200';
         }
 
         let content = `
@@ -631,6 +794,7 @@ async function openModalDetail(dateStr) {
                     <div class="grid grid-cols-1 gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
                         <p>Jam Datang: <span class="font-semibold text-gray-900 dark:text-white">${presensi?.jam_masuk || '—'}</span></p>
                         <p>Jam Pulang: <span class="font-semibold text-gray-900 dark:text-white">${presensi?.jam_pulang || '—'}</span></p>
+                        <p class="sm:col-span-2">Keterangan: <span class="font-semibold text-gray-900 dark:text-white">${presensi?.keterangan || '—'}</span></p>
                     </div>
                 </div>
 

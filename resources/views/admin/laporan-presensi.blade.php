@@ -47,18 +47,16 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-        <p class="text-sm text-gray-600 dark:text-gray-300">Total</p>
-        <p id="stat-total" class="text-2xl font-semibold text-gray-900 dark:text-white">-</p>
+<div class="flex flex-wrap items-stretch justify-end gap-4">
+    <div class="w-full rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm sm:w-[260px] dark:border-emerald-800/60 dark:bg-emerald-900/20">
+        <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Total Kehadiran</p>
+        <p id="stat-total-kehadiran" class="mt-1 text-3xl font-bold text-emerald-800 dark:text-emerald-200">-</p>
+        <p id="stat-total-kehadiran-detail" class="mt-1 text-xs text-emerald-700/80 dark:text-emerald-300/80">Hadir: - | Terlambat: -</p>
     </div>
-    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-        <p class="text-sm text-gray-600 dark:text-gray-300">Hadir</p>
-        <p id="stat-hadir" class="text-2xl font-semibold text-green-700">-</p>
-    </div>
-    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-        <p class="text-sm text-gray-600 dark:text-gray-300">Terlambat</p>
-        <p id="stat-terlambat" class="text-2xl font-semibold text-orange-700">-</p>
+    <div class="w-full rounded-xl border border-indigo-200 bg-indigo-50 p-4 shadow-sm sm:w-[260px] dark:border-indigo-800/60 dark:bg-indigo-900/20">
+        <p class="text-sm font-medium text-indigo-700 dark:text-indigo-300">Izin / Alpa</p>
+        <p id="stat-total-izin-alpa" class="mt-1 text-3xl font-bold text-indigo-800 dark:text-indigo-200">-</p>
+        <p id="stat-total-izin-alpa-detail" class="mt-1 text-xs text-indigo-700/80 dark:text-indigo-300/80">Izin: - | Alpa: -</p>
     </div>
 </div>
 
@@ -177,9 +175,13 @@ async function applyFilter() {
         btnApply.disabled = false; btnCsv.disabled = false; btnPrint.disabled = false; btnApply.textContent = prevText;
         return;
     }
-    document.getElementById('stat-total').textContent = data.stat.total;
-    document.getElementById('stat-hadir').textContent = data.stat.hadir;
-    document.getElementById('stat-terlambat').textContent = data.stat.terlambat;
+    const totalKehadiran = Number(data.stat.hadir || 0) + Number(data.stat.terlambat || 0);
+    const totalIzinAlpa = Number(data.stat.izin || 0) + Number(data.stat.alpa || 0);
+
+    document.getElementById('stat-total-kehadiran').textContent = totalKehadiran;
+    document.getElementById('stat-total-kehadiran-detail').textContent = `Hadir: ${data.stat.hadir || 0} | Terlambat: ${data.stat.terlambat || 0}`;
+    document.getElementById('stat-total-izin-alpa').textContent = totalIzinAlpa;
+    document.getElementById('stat-total-izin-alpa-detail').textContent = `Izin: ${data.stat.izin || 0} | Alpa: ${data.stat.alpa || 0}`;
     document.getElementById('range-label').textContent = `${data.range.start} s/d ${data.range.end}`;
 
     currentRows = data.rows || [];
@@ -207,13 +209,23 @@ function renderCurrentPage() {
 
     tbody.innerHTML = '';
     for (const r of rows) {
+        const statusClass = r.status === 'hadir'
+            ? 'bg-green-100 text-green-700'
+            : r.status === 'terlambat'
+                ? 'bg-orange-100 text-orange-700'
+                : r.status === 'izin'
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : r.status === 'alpa'
+                        ? 'bg-rose-100 text-rose-700'
+                        : 'bg-gray-100 text-gray-700';
+
         const tr = document.createElement('tr');
         tr.className = 'odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700/40 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-colors';
         tr.innerHTML = `
             <td class="px-3 py-2 text-gray-900 dark:text-gray-100 md:px-4">${r.tanggal}</td>
             <td class="px-3 py-2 text-gray-900 dark:text-gray-100 md:px-4">${r.nama}</td>
             <td class="hidden px-3 py-2 text-gray-600 dark:text-gray-300 md:table-cell md:px-4">${r.email}</td>
-            <td class="px-3 py-2 text-gray-900 dark:text-gray-100 md:px-4">${r.status}</td>
+            <td class="px-3 py-2 text-gray-900 dark:text-gray-100 md:px-4"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusClass}">${r.status}</span></td>
             <td class="px-3 py-2 text-gray-900 dark:text-gray-100 md:px-4">${r.jam_masuk ?? ''}</td>
             <td class="hidden px-3 py-2 text-gray-900 dark:text-gray-100 lg:table-cell md:px-4">${r.jam_pulang ?? ''}</td>
         `;

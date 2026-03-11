@@ -6,29 +6,46 @@
 @php
     $today = now()->toDateString();
 
-    $totalPeserta = \App\Models\User::where('role', 'magang')->count();
-
-    $hadirHariIni = \App\Models\Presensi::whereDate('tanggal', $today)
-        ->whereIn('status', ['hadir', 'terlambat'])
-        ->count();
-
-    $izinAlpaHariIni = \App\Models\Presensi::whereDate('tanggal', $today)
-        ->whereIn('status', ['izin', 'alpa'])
-        ->count();
-
-    $logbookMasukHariIni = \App\Models\Logbook::whereDate('tanggal', $today)->count();
-
     $pesertaList = \App\Models\User::where('role', 'magang')
         ->orderBy('name')
         ->get();
+
+    $totalPeserta = $pesertaList->count();
 
     $presensiHariIni = \App\Models\Presensi::whereDate('tanggal', $today)
         ->get()
         ->keyBy('user_id');
 
+    $izinHariIni = \App\Models\Permission::where('status', 'approved')
+        ->whereDate('start_date', '<=', $today)
+        ->whereDate('end_date', '>=', $today)
+        ->get()
+        ->keyBy('user_id');
+
+    $statusHariIniPerPeserta = $pesertaList->map(function ($peserta) use ($presensiHariIni, $izinHariIni) {
+        $presensi = $presensiHariIni->get($peserta->id);
+        $izin = $izinHariIni->get($peserta->id);
+
+        if ($izin) {
+            return 'izin';
+        }
+
+        return $presensi->status ?? 'belum_absen';
+    });
+
+    $hadirHariIni = $statusHariIniPerPeserta
+        ->filter(fn ($status) => in_array($status, ['hadir', 'terlambat'], true))
+        ->count();
+
+    $izinAlpaHariIni = $statusHariIniPerPeserta
+        ->filter(fn ($status) => in_array($status, ['izin', 'alpa'], true))
+        ->count();
+
+    $logbookMasukHariIni = \App\Models\Logbook::whereDate('tanggal', $today)->count();
+
     $recentPresensis = \App\Models\Presensi::with('user')
         ->latest()
-        ->take(8)
+        ->take(5)
         ->get();
 @endphp
 
@@ -181,7 +198,9 @@
                     @forelse($pesertaList as $peserta)
                         @php
                             $presensi = $presensiHariIni->get($peserta->id);
-                            $status = $presensi->status ?? 'belum_absen';
+                            $izin = $izinHariIni->get($peserta->id);
+                            $status = $izin ? 'izin' : ($presensi->status ?? 'belum_absen');
+                            $keterangan = $izin ? $izin->reason : ($presensi->keterangan ?? '-');
                         @endphp
                         <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700/30">
                             <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{{ $peserta->name }}</td>
@@ -200,7 +219,7 @@
                             </td>
                             <td class="px-4 py-3 text-gray-700 dark:text-gray-300">{{ $presensi->jam_masuk ?? '-' }}</td>
                             <td class="px-4 py-3 text-gray-700 dark:text-gray-300">{{ $presensi->jam_pulang ?? '-' }}</td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ $presensi->keterangan ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ $keterangan }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -216,17 +235,17 @@
         <div class="xl:col-span-2 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Aktivitas Presensi Terbaru</h2>
-                <span class="text-xs text-gray-500 dark:text-gray-400">Update otomatis setelah refresh halaman</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">5 terbaru · refresh untuk update</span>
             </div>
 
-            <div class="space-y-3">
+            <div class="max-h-72 overflow-y-auto space-y-3 pr-1">
                 @forelse($recentPresensis as $presensi)
                     <div class="flex items-start justify-between gap-3 rounded-lg border border-gray-200 px-3 py-3 dark:border-gray-700">
                         <div>
                             <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $presensi->user->name ?? 'Peserta' }}</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">{{ \Carbon\Carbon::parse($presensi->tanggal)->format('d M Y') }} | Masuk: {{ $presensi->jam_masuk ?? '-' }} | Pulang: {{ $presensi->jam_pulang ?? '-' }}</p>
                         </div>
-                        <span class="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">{{ ucfirst($presensi->status) }}</span>
+                        <span class="inline-flex shrink-0 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">{{ ucfirst($presensi->status) }}</span>
                     </div>
                 @empty
                     <p class="text-sm text-gray-500 dark:text-gray-400">Belum ada aktivitas presensi.</p>
@@ -234,9 +253,9 @@
             </div>
         </div>
 
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div class="flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Menu Admin</h2>
-            <div class="space-y-3">
+            <div class="flex flex-col gap-3">
                 <a href="{{ route('admin.peserta.detail') }}" class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">Kelola Peserta <span>&rsaquo;</span></a>
                 <a href="{{ route('admin.laporan.presensi') }}" class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">Laporan Presensi <span>&rsaquo;</span></a>
                 <a href="{{ route('admin.logbook') }}" class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">Manajemen Logbook <span>&rsaquo;</span></a>
@@ -284,13 +303,17 @@ function renderRekapList() {
 
     container.innerHTML = rows.map(item => {
         if (currentRekapTab === 'hadir') {
+            const detailText = item.status === 'izin'
+                ? `Keterangan: ${escapeHtml(item.keterangan || '-')}`
+                : `Masuk: ${escapeHtml(item.jam_masuk || '-')} | Pulang: ${escapeHtml(item.jam_pulang || '-')}`;
+
             return `
                 <div class="rounded-lg border border-gray-200 px-3 py-2.5 dark:border-gray-700">
                     <div class="flex items-center justify-between gap-2">
                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">${escapeHtml(item.name)}</p>
                         ${statusBadge(item.status)}
                     </div>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Masuk: ${escapeHtml(item.jam_masuk || '-')} | Pulang: ${escapeHtml(item.jam_pulang || '-')}</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">${detailText}</p>
                 </div>
             `;
         }

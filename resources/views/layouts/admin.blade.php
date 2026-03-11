@@ -10,6 +10,11 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <style>
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
         [x-cloak] { display: none !important; }
         @keyframes loading-bar-sweep {
             0% { transform: translateX(-120%); }
@@ -32,9 +37,9 @@
         })();
     </script>
 </head>
-<body class="font-sans antialiased bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+<body class="font-sans antialiased overflow-x-hidden bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
     <div
-        class="min-h-screen w-full flex"
+        class="relative min-h-screen w-full max-w-full overflow-x-hidden flex"
         x-data="{ sidebarExpanded: false, isMobile: false, loading: true }"
         x-init="
             window.onload = () => { setTimeout(() => loading = false, 500) };
@@ -46,6 +51,15 @@
             };
             syncScreen();
             window.addEventListener('resize', syncScreen);
+
+            $watch('sidebarExpanded', value => {
+                document.body.classList.toggle('overflow-hidden', isMobile && value);
+            });
+            $watch('isMobile', value => {
+                if (!value) {
+                    document.body.classList.remove('overflow-hidden');
+                }
+            });
         "
         x-on:page-loading.window="loading = true"
         x-on:page-loaded.window="loading = false"
@@ -61,21 +75,27 @@
         @include('layouts.partials.sidebar')
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col transition-all duration-300" id="admin-main" :class="isMobile ? 'ml-0' : (sidebarExpanded ? 'ml-64' : 'ml-20')">
+        <div class="flex-1 flex max-w-full flex-col overflow-x-hidden transition-all duration-300" id="admin-main" :class="isMobile ? 'ml-0' : (sidebarExpanded ? 'ml-64' : 'ml-20')">
             <!-- Header -->
             @include('layouts.partials.header')
 
                 <!-- Page Content -->
-            <main id="main-content" class="flex-1 transition-all duration-300 ease-in-out">
+            <main id="main-content" class="flex-1 w-full max-w-full overflow-x-hidden transition-all duration-300 ease-in-out">
                 <div class="p-4 md:p-6 lg:p-8">
                     @yield('content')
                 </div>
             </main>
         </div>
-    </div>
 
-    <!-- Backdrop for mobile -->
-    <div x-show="isMobile && sidebarExpanded" x-transition.opacity class="fixed inset-0 bg-black/50 z-30 md:hidden" @click="sidebarExpanded = false"></div>
+        <!-- Backdrop for mobile -->
+        <div
+            x-cloak
+            x-show="isMobile && sidebarExpanded"
+            x-transition.opacity
+            class="fixed inset-0 z-30 bg-black/40 md:hidden"
+            @click="sidebarExpanded = false"
+        ></div>
+    </div>
 
     <script>
         // Theme Management
@@ -182,6 +202,7 @@
 
         window.addEventListener('pageshow', function() {
             window.dispatchEvent(new CustomEvent('page-loaded'));
+            document.body.classList.remove('overflow-hidden');
         });
 
     </script>
