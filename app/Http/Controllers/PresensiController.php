@@ -6,6 +6,7 @@ use App\Models\Logbook;
 use App\Models\Permission;
 use App\Models\CustomWorkingDay;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -843,19 +844,66 @@ class PresensiController extends Controller
         $range = $request->query('range', '30'); // 7|30|month
 
         if ($range === 'month') {
-            $start = Carbon::now()->startOfMonth();
-            $end = Carbon::now()->endOfMonth();
+            $start = Carbon::now('Asia/Makassar')->startOfMonth();
+            $end = Carbon::now('Asia/Makassar')->endOfMonth();
         } else {
-            $days = is_numeric($range) ? (int)$range : 30;
-            $end = Carbon::today();
-            $start = Carbon::today()->subDays($days - 1);
+            $days = is_numeric($range) ? max(1, (int) $range) : 30;
+            $end = Carbon::today('Asia/Makassar');
+            $start = Carbon::today('Asia/Makassar')->subDays($days - 1);
         }
 
-        // Fetch presensi in range
-        $presensis = Presensi::whereBetween('tanggal', [$start, $end])->get(['tanggal','status']);
+        $startDate = $start->toDateString();
+        $endDate = $end->toDateString();
 
-        // Build day labels
-        $period = new \Carbon\CarbonPeriod($start, '1 day', $end);
+        // Kandidat peserta aktif dalam rentang tren
+        $participants = User::query()
+            ->where('role', 'magang')
+            ->where(function ($q) use ($endDate) {
+                $q->whereNull('tanggal_mulai')
+                    ->orWhereDate('tanggal_mulai', '<=', $endDate);
+            })
+            ->where(function ($q) use ($startDate) {
+                $q->whereNull('tanggal_selesai')
+                    ->orWhereDate('tanggal_selesai', '>=', $startDate);
+            })
+            ->get(['id', 'tanggal_mulai', 'tanggal_selesai']);
+
+        $participantIds = $participants->pluck('id')->all();
+
+        $presensiRows = Presensi::query()
+            ->whereIn('user_id', $participantIds ?: [0])
+            ->whereBetween('tanggal', [$startDate, $endDate])
+            ->get(['tanggal', 'user_id', 'status']);
+
+        $permissionRows = Permission::query()
+            ->whereIn('user_id', $participantIds ?: [0])
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $endDate)
+            ->whereDate('end_date', '>=', $startDate)
+            ->get(['user_id', 'start_date', 'end_date']);
+
+        $presensiByDate = [];
+        foreach ($presensiRows as $row) {
+            $dateKey = Carbon::parse($row->tanggal)->toDateString();
+            $presensiByDate[$dateKey] = $presensiByDate[$dateKey] ?? [];
+            $presensiByDate[$dateKey][$row->user_id] = $row->status;
+        }
+
+        $permissionByDate = [];
+        foreach ($permissionRows as $row) {
+            $cursor = Carbon::parse($row->start_date)->startOfDay();
+            $rangeEnd = Carbon::parse($row->end_date)->endOfDay();
+
+            while ($cursor->lessThanOrEqualTo($rangeEnd)) {
+                if ($cursor->betweenIncluded($start, $end)) {
+                    $dateKey = $cursor->toDateString();
+                    $permissionByDate[$dateKey] = $permissionByDate[$dateKey] ?? [];
+                    $permissionByDate[$dateKey][$row->user_id] = true;
+                }
+                $cursor->addDay();
+            }
+        }
+
         $labels = [];
         $series = [
             'hadir' => [],
@@ -864,21 +912,40 @@ class PresensiController extends Controller
             'alpa' => [],
         ];
 
-        $grouped = [];
-        foreach ($presensis as $p) {
-            $key = Carbon::parse($p->tanggal)->format('Y-m-d');
-            $grouped[$key] = $grouped[$key] ?? ['hadir'=>0,'terlambat'=>0,'izin'=>0,'alpa'=>0];
-            if (isset($grouped[$key][$p->status])) {
-                $grouped[$key][$p->status]++;
-            }
-        }
-
+        $period = new \Carbon\CarbonPeriod($start, '1 day', $end);
         foreach ($period as $date) {
-            $key = $date->format('Y-m-d');
-            $labels[] = $date->format('d M');
-            $day = $grouped[$key] ?? ['hadir'=>0,'terlambat'=>0,'izin'=>0,'alpa'=>0];
-            foreach ($series as $k => $_) {
-                $series[$k][] = $day[$k];
+            $dateKey = $date->toDateString();
+            $labels[] = $date->translatedFormat('d M');
+
+            $counts = ['hadir' => 0, 'terlambat' => 0, 'izin' => 0, 'alpa' => 0];
+
+            foreach ($participants as $participant) {
+                $isStarted = empty($participant->tanggal_mulai)
+                    || Carbon::parse($participant->tanggal_mulai)->startOfDay()->lte($date);
+                $isNotEnded = empty($participant->tanggal_selesai)
+                    || Carbon::parse($participant->tanggal_selesai)->startOfDay()->gte($date);
+
+                if (!$isStarted || !$isNotEnded) {
+                    continue;
+                }
+
+                if (!empty($permissionByDate[$dateKey][$participant->id])) {
+                    $counts['izin']++;
+                    continue;
+                }
+
+                $status = $presensiByDate[$dateKey][$participant->id] ?? null;
+                if ($status === 'hadir') {
+                    $counts['hadir']++;
+                } elseif ($status === 'terlambat') {
+                    $counts['terlambat']++;
+                } else {
+                    $counts['alpa']++;
+                }
+            }
+
+            foreach ($series as $key => $_) {
+                $series[$key][] = $counts[$key];
             }
         }
 

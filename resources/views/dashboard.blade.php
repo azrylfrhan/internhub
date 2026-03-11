@@ -471,6 +471,32 @@ async function loadTrend(range, buttonEl = null) {
             trendChartInstance.destroy();
             trendChartInstance = null;
         }
+
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        trendChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Gagal memuat data'],
+                datasets: [{
+                    label: 'Tren Kehadiran',
+                    data: [0],
+                    backgroundColor: 'rgba(239,68,68,0.2)',
+                    borderColor: '#EF4444',
+                    borderWidth: 1,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
     } finally {
         loading.classList.add('hidden');
         loading.classList.remove('flex');
