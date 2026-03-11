@@ -843,20 +843,19 @@ class PresensiController extends Controller
     {
         $range = $request->query('range', '30'); // 7|30|month
         $today = Carbon::today('Asia/Makassar');
-        $lastClosedDay = $today->copy()->subDay();
 
         if ($range === 'month') {
             $start = Carbon::now('Asia/Makassar')->startOfMonth();
-            $end = Carbon::now('Asia/Makassar')->endOfMonth();
+            $end = $today->copy();
         } else {
             $days = is_numeric($range) ? max(1, (int) $range) : 30;
-            $end = $lastClosedDay->copy();
-            $start = $lastClosedDay->copy()->subDays($days - 1);
+            $end = $today->copy();
+            $start = $today->copy()->subDays($days - 1);
         }
 
-        // Jangan hitung hari ini/future: hanya hari yang sudah lewat.
-        if ($end->gt($lastClosedDay)) {
-            $end = $lastClosedDay->copy();
+        // Jangan hitung tanggal masa depan.
+        if ($end->gt($today)) {
+            $end = $today->copy();
         }
 
         // Jika belum ada hari terlewati pada periode tersebut, kembalikan data kosong.
