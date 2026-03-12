@@ -18,6 +18,7 @@ class PesertaManagementController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'regex:/^\S+$/', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'instansi' => ['required', 'string', 'max:255'],
             'nomor_telepon' => ['required', 'string', 'max:30'],
@@ -26,6 +27,9 @@ class PesertaManagementController extends Controller
             'alamat' => ['nullable', 'string'],
         ], [
             'tanggal_selesai.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username sudah digunakan.',
+            'username.regex' => 'Username tidak boleh mengandung spasi.',
         ]);
 
         if ($validator->fails()) {
@@ -43,6 +47,7 @@ class PesertaManagementController extends Controller
 
         User::create([
             'name' => $validated['name'],
+            'username' => $validated['username'],
             'email' => $validated['email'],
             'password' => Hash::make('password123'),
             'role' => $shouldArchive ? 'alumni' : 'magang',
@@ -74,6 +79,7 @@ class PesertaManagementController extends Controller
 
         $validator = Validator::make($request->all(), [
             'edit_name' => ['required', 'string', 'max:255'],
+            'edit_username' => ['required', 'string', 'max:255', 'regex:/^\S+$/', 'unique:users,username,' . $peserta->id],
             'edit_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $peserta->id],
             'edit_instansi' => ['required', 'string', 'max:255'],
             'edit_nomor_telepon' => ['required', 'string', 'max:30'],
@@ -85,6 +91,9 @@ class PesertaManagementController extends Controller
             'edit_tanggal_selesai.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
             'edit_password.min' => 'Password baru minimal 8 karakter.',
             'edit_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'edit_username.required' => 'Username wajib diisi.',
+            'edit_username.unique' => 'Username sudah digunakan.',
+            'edit_username.regex' => 'Username tidak boleh mengandung spasi.',
         ]);
 
         if ($validator->fails()) {
@@ -102,6 +111,7 @@ class PesertaManagementController extends Controller
 
         $updatePayload = [
             'name' => $validated['edit_name'],
+            'username' => $validated['edit_username'],
             'email' => $validated['edit_email'],
             'instansi' => $validated['edit_instansi'],
             'nomor_telepon' => $validated['edit_nomor_telepon'],

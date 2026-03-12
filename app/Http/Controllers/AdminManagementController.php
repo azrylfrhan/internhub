@@ -25,13 +25,19 @@ class AdminManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'regex:/^\S+$/', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'role' => ['required', Rule::in(['admin', 'mentor'])],
+        ], [
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username sudah digunakan.',
+            'username.regex' => 'Username tidak boleh mengandung spasi.',
         ]);
 
         User::create([
             'name' => $validated['name'],
+            'username' => $validated['username'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
@@ -48,12 +54,18 @@ class AdminManagementController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'regex:/^\S+$/', Rule::unique('users', 'username')->ignore($management->id)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($management->id)],
             'role' => ['required', Rule::in(['admin', 'mentor'])],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+        ], [
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username sudah digunakan.',
+            'username.regex' => 'Username tidak boleh mengandung spasi.',
         ]);
 
         $management->name = $validated['name'];
+        $management->username = $validated['username'];
         $management->email = $validated['email'];
         $management->role = $validated['role'];
 

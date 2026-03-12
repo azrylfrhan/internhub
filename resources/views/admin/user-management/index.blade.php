@@ -27,6 +27,7 @@
                 <thead class="bg-gray-50 dark:bg-gray-700/70">
                     <tr>
                         <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Nama</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Username</th>
                         <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Email</th>
                         <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Role</th>
                         <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Aksi</th>
@@ -36,6 +37,7 @@
                     @forelse($users as $user)
                         <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700/30">
                             <td class="px-4 py-3 text-gray-900 dark:text-gray-100">{{ $user->name }}</td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ $user->username ?? '-' }}</td>
                             <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ $user->email }}</td>
                             <td class="px-4 py-3">
                                 <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ $user->role === 'admin' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' }}">
@@ -49,6 +51,7 @@
                                         onclick="openEditManagementFromButton(this)"
                                         data-id="{{ $user->id }}"
                                         data-name="{{ $user->name }}"
+                                        data-username="{{ $user->username }}"
                                         data-email="{{ $user->email }}"
                                         data-role="{{ $user->role }}"
                                         class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50"
@@ -70,7 +73,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Belum ada akun admin/mentor.</td>
+                            <td colspan="5" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Belum ada akun admin/mentor.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -104,6 +107,11 @@
                 <div>
                     <label for="name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nama</label>
                     <input id="name" name="name" type="text" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
+                </div>
+
+                <div>
+                    <label for="username" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+                    <input id="username" name="username" type="text" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
                 </div>
 
                 <div>
@@ -162,6 +170,11 @@
             <div>
                 <label for="edit_name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nama</label>
                 <input id="edit_name" name="name" type="text" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
+            </div>
+
+            <div>
+                <label for="edit_username" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+                <input id="edit_username" name="username" type="text" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
             </div>
 
             <div>
@@ -235,6 +248,7 @@ function openEditManagementFromButton(button) {
     form.action = `/admin/management/${userId}`;
 
     document.getElementById('edit_name').value = button.dataset.name || '';
+    document.getElementById('edit_username').value = button.dataset.username || '';
     document.getElementById('edit_email').value = button.dataset.email || '';
     document.getElementById('edit_role').value = button.dataset.role || 'mentor';
     document.getElementById('edit_password').value = '';

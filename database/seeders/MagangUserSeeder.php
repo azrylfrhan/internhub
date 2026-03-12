@@ -17,6 +17,7 @@ class MagangUserSeeder extends Seeder
         $magangs = [
             [
                 'name' => 'Ahmad Rizki',
+                'username' => 'azrial_magang',
                 'email' => 'ahmad@bps.go.id',
                 'role' => 'magang'
             ]

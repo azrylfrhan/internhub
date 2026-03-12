@@ -112,6 +112,7 @@
                     <tr id="row-user-{{ $peserta->id }}" class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700/40 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-colors">
                         <td class="px-3 md:px-4 py-3 text-gray-900 dark:text-gray-200 font-medium align-top min-w-[220px]">
                             <div class="font-semibold">{{ $peserta->name }}</div>
+                            <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{ '@' . ($peserta->username ?? '-') }}</span>
                             <span class="block md:hidden text-xs text-gray-500 dark:text-gray-400">{{ $peserta->email }}</span>
                             <span class="mt-1 block lg:hidden text-xs text-gray-500 dark:text-gray-400">{{ $peserta->instansi ?: '-' }}</span>
                             <span class="mt-1 block lg:hidden text-xs text-gray-500 dark:text-gray-400">{{ $peserta->nomor_telepon ?: '-' }}</span>
@@ -135,6 +136,7 @@
                                 onclick="openEditPesertaFromButton(this)"
                                 data-id="{{ $peserta->id }}"
                                 data-name="{{ $peserta->name }}"
+                                data-username="{{ $peserta->username }}"
                                 data-email="{{ $peserta->email }}"
                                 data-instansi="{{ $peserta->instansi }}"
                                 data-nomor-telepon="{{ $peserta->nomor_telepon }}"
@@ -417,6 +419,11 @@
                 </div>
 
                 <div>
+                    <label for="username" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+                    <input id="username" name="username" type="text" value="{{ old('username') }}" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
+                </div>
+
+                <div>
                     <label for="instansi" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Instansi (Kampus)</label>
                     <input id="instansi" name="instansi" type="text" value="{{ old('instansi') }}" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
                 </div>
@@ -495,6 +502,11 @@
                 <div>
                     <label for="edit_email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                     <input id="edit_email" name="edit_email" type="email" value="{{ old('edit_email') }}" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
+                </div>
+
+                <div>
+                    <label for="edit_username" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+                    <input id="edit_username" name="edit_username" type="text" value="{{ old('edit_username') }}" required class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400" />
                 </div>
 
                 <div>
@@ -591,6 +603,7 @@ function openEditPesertaFromButton(btn) {
     openEditPesertaModal({
         id: btn.dataset.id || '',
         name: btn.dataset.name || '',
+        username: btn.dataset.username || '',
         email: btn.dataset.email || '',
         instansi: btn.dataset.instansi || '',
         nomorTelepon: btn.dataset.nomorTelepon || '',
@@ -606,6 +619,7 @@ function openEditPesertaModal(payload) {
 
     document.getElementById('edit_user_id').value = payload.id || '';
     document.getElementById('edit_name').value = payload.name || '';
+    document.getElementById('edit_username').value = payload.username || '';
     document.getElementById('edit_email').value = payload.email || '';
     document.getElementById('edit_instansi').value = payload.instansi || '';
     document.getElementById('edit_nomor_telepon').value = payload.nomorTelepon || '';
@@ -671,6 +685,7 @@ if (hasEditPesertaErrors) {
     openEditPesertaModal({
         id: @js(old('edit_user_id')),
         name: @js(old('edit_name')),
+        username: @js(old('edit_username')),
         email: @js(old('edit_email')),
         instansi: @js(old('edit_instansi')),
         nomorTelepon: @js(old('edit_nomor_telepon')),

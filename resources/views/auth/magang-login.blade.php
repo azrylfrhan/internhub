@@ -49,9 +49,9 @@
                         <form method="POST" action="{{ route('magang.login') }}" class="space-y-5" id="magangLoginForm">
                             @csrf
                             <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                                <input id="email" name="email" type="email" autocomplete="email" value="{{ old('email') }}" required class="w-full px-4 py-3 border border-gray-300 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="magang@bps.go.id">
-                                @error('email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                                <input id="username" name="username" type="text" autocomplete="username" value="{{ old('username') }}" required class="w-full px-4 py-3 border border-gray-300 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="azrial_magang">
+                                @error('username')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
 
                             <div>

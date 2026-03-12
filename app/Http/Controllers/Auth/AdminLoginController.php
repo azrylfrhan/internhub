@@ -23,11 +23,11 @@ class AdminLoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'username' => ['required', 'string', 'max:255', 'regex:/^\S+$/'],
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        if (Auth::attempt($request->only('username', 'password'), $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             $user = Auth::user();
@@ -36,7 +36,7 @@ class AdminLoginController extends Controller
             if (!in_array($user->role, ['admin', 'mentor'])) {
                 Auth::logout();
                 throw ValidationException::withMessages([
-                    'email' => 'Anda tidak memiliki akses ke halaman admin.',
+                    'username' => 'Anda tidak memiliki akses ke halaman admin.',
                 ]);
             }
 
@@ -44,7 +44,7 @@ class AdminLoginController extends Controller
         }
 
         throw ValidationException::withMessages([
-            'email' => 'Email atau password salah.',
+            'username' => 'Username atau password salah.',
         ]);
     }
 }
