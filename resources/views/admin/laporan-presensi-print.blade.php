@@ -201,6 +201,11 @@
 </head>
 <body>
 <div class="container">
+    @php
+        $rangeStartLabel = !empty($range['start']) ? \Carbon\Carbon::parse($range['start'])->translatedFormat('d F Y') : '-';
+        $rangeEndLabel = !empty($range['end']) ? \Carbon\Carbon::parse($range['end'])->translatedFormat('d F Y') : '-';
+    @endphp
+
     <div class="header">
         <div class="logo-section">
             <img id="logo-bps" src="{{ asset('logo-bps.png') }}" alt="Logo BPS" class="logo">
@@ -215,7 +220,7 @@
 
     <div class="title-section">
         <h2>Laporan Presensi Peserta Magang</h2>
-        <p>Periode: {{ \Carbon\Carbon::parse($range['start'])->translatedFormat('d F Y') }} s/d {{ \Carbon\Carbon::parse($range['end'])->translatedFormat('d F Y') }}</p>
+        <p>Periode: {{ $rangeStartLabel }} s/d {{ $rangeEndLabel }}</p>
     </div>
 
 

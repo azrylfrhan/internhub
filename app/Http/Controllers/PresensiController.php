@@ -822,6 +822,28 @@ class PresensiController extends Controller
      */
     public function printLaporanPresensi(Request $request)
     {
+        $hasAnyFilter = $request->filled('start_date')
+            || $request->filled('end_date')
+            || $request->filled('status')
+            || $request->filled('user_id');
+
+        if (!$hasAnyFilter) {
+            return view('admin.laporan-presensi-print', [
+                'rows' => [],
+                'stat' => [
+                    'total' => 0,
+                    'hadir' => 0,
+                    'terlambat' => 0,
+                    'izin' => 0,
+                    'alpa' => 0,
+                ],
+                'range' => [
+                    'start' => null,
+                    'end' => null,
+                ],
+            ]);
+        }
+
         // Pull data from API method
         $dataResponse = $this->getLaporanPresensiData($request);
         $payload = $dataResponse->getData(true);
