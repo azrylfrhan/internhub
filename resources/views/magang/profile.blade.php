@@ -5,7 +5,7 @@
 @section('content')
 <div
     x-data="{
-        editModal: @js($errors->has('email') || $errors->has('nomor_telepon') || $errors->has('alamat') || $errors->has('instansi')),
+        editModal: @js($errors->has('username') || $errors->has('email') || $errors->has('nomor_telepon') || $errors->has('alamat') || $errors->has('instansi')),
         passwordModal: @js($errors->has('current_password') || $errors->has('new_password')),
         showCurrentPassword: false,
         showNewPassword: false,
@@ -20,7 +20,7 @@
             </div>
             <div class="flex-1">
                 <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ Auth::user()->name }}</h1>
-                <p class="text-gray-600 dark:text-gray-400">{{ Auth::user()->email }}</p>
+                <p class="text-gray-600 dark:text-gray-400">{{ '@' . Auth::user()->username }}</p>
                 <p class="text-sm text-blue-600 dark:text-blue-400 font-medium mt-1">Anak Magang</p>
             </div>
         </div>
@@ -40,8 +40,16 @@
 
             <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
                 <div>
+                    <p class="font-medium text-gray-900 dark:text-white">Username</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Username yang digunakan untuk login</p>
+                </div>
+                <p class="text-gray-900 dark:text-gray-200">{{ '@' . Auth::user()->username }}</p>
+            </div>
+
+            <div class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
+                <div>
                     <p class="font-medium text-gray-900 dark:text-white">Email</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Alamat email untuk login</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Alamat email profil</p>
                 </div>
                 <p class="text-gray-900 dark:text-gray-200">{{ Auth::user()->email }}</p>
             </div>
@@ -186,6 +194,14 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama</label>
                     <input type="text" value="{{ Auth::user()->name }}" readonly class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-not-allowed">
+                </div>
+
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
+                    <input id="username" name="username" type="text" value="{{ old('username', Auth::user()->username) }}" required class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    @error('username')
+                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>

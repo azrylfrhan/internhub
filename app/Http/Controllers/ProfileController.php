@@ -68,6 +68,13 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
+            'username' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^\S+$/',
+                Rule::unique('users', 'username')->ignore($user->id),
+            ],
             'email' => [
                 'required',
                 'string',
@@ -78,8 +85,13 @@ class ProfileController extends Controller
             'nomor_telepon' => ['nullable', 'string', 'max:30'],
             'alamat' => ['nullable', 'string', 'max:1000'],
             'instansi' => ['nullable', 'string', 'max:255'],
+        ], [
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username sudah digunakan.',
+            'username.regex' => 'Username tidak boleh mengandung spasi.',
         ]);
 
+        $user->username = $validated['username'];
         $user->email = $validated['email'];
         $user->nomor_telepon = $validated['nomor_telepon'] ?? null;
         $user->alamat = $validated['alamat'] ?? null;

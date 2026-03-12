@@ -99,6 +99,7 @@
             <thead class="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 whitespace-nowrap">
                 <tr>
                     <th class="px-3 md:px-4 py-2 text-left font-semibold">Nama</th>
+                    <th class="hidden md:table-cell px-3 md:px-4 py-2 text-left font-semibold">Username</th>
                     <th class="hidden md:table-cell px-3 md:px-4 py-2 text-left font-semibold">Email</th>
                     <th class="hidden lg:table-cell px-3 md:px-4 py-2 text-left font-semibold">Instansi</th>
                     <th class="hidden lg:table-cell px-3 md:px-4 py-2 text-left font-semibold">Kontak</th>
@@ -112,12 +113,13 @@
                     <tr id="row-user-{{ $peserta->id }}" class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-700/40 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-colors">
                         <td class="px-3 md:px-4 py-3 text-gray-900 dark:text-gray-200 font-medium align-top min-w-[220px]">
                             <div class="font-semibold">{{ $peserta->name }}</div>
-                            <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{ '@' . ($peserta->username ?? '-') }}</span>
                             <span class="block md:hidden text-xs text-gray-500 dark:text-gray-400">{{ $peserta->email }}</span>
+                            <span class="block md:hidden text-xs text-gray-500 dark:text-gray-400">{{ '@' . ($peserta->username ?? '-') }}</span>
                             <span class="mt-1 block lg:hidden text-xs text-gray-500 dark:text-gray-400">{{ $peserta->instansi ?: '-' }}</span>
                             <span class="mt-1 block lg:hidden text-xs text-gray-500 dark:text-gray-400">{{ $peserta->nomor_telepon ?: '-' }}</span>
                             <span class="mt-1 block xl:hidden text-xs text-gray-500 dark:text-gray-400">{{ $peserta->alamat ?: '-' }}</span>
                         </td>
+                        <td class="hidden md:table-cell px-3 md:px-4 py-3 text-gray-600 dark:text-gray-400 align-top">{{ '@' . ($peserta->username ?? '-') }}</td>
                         <td class="hidden md:table-cell px-3 md:px-4 py-3 text-gray-600 dark:text-gray-400 align-top">{{ $peserta->email }}</td>
                         <td class="hidden lg:table-cell px-3 md:px-4 py-3 text-gray-600 dark:text-gray-400 align-top">{{ $peserta->instansi ?: '-' }}</td>
                         <td class="hidden lg:table-cell px-3 md:px-4 py-3 text-gray-600 dark:text-gray-400 align-top">{{ $peserta->nomor_telepon ?: '-' }}</td>
@@ -154,7 +156,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-3 text-center text-gray-500">Belum ada peserta magang aktif</td>
+                        <td colspan="8" class="px-4 py-3 text-center text-gray-500">Belum ada peserta magang aktif</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -261,6 +263,7 @@
                 <thead class="bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     <tr>
                         <th class="px-3 md:px-4 py-2 text-left font-semibold">Nama</th>
+                        <th class="hidden md:table-cell px-3 md:px-4 py-2 text-left font-semibold">Username</th>
                         <th class="hidden md:table-cell px-3 md:px-4 py-2 text-left font-semibold">Email</th>
                         <th class="hidden lg:table-cell px-3 md:px-4 py-2 text-left font-semibold">Instansi</th>
                         <th class="hidden lg:table-cell px-3 md:px-4 py-2 text-left font-semibold">Kontak</th>
@@ -280,8 +283,10 @@
                             <td class="px-3 md:px-4 py-3 text-gray-900 dark:text-gray-200 font-medium min-w-[220px]">
                                 <div class="font-semibold">{{ $arsip->name }}</div>
                                 <span class="block md:hidden text-xs text-gray-500 dark:text-gray-400">{{ $arsip->email }}</span>
+                                <span class="block md:hidden text-xs text-gray-500 dark:text-gray-400">{{ '@' . ($arsip->username ?? '-') }}</span>
                                 <span class="mt-1 block lg:hidden text-xs text-gray-500 dark:text-gray-400">{{ $arsip->instansi ?: '-' }}</span>
                             </td>
+                            <td class="hidden md:table-cell px-3 md:px-4 py-3 text-gray-600 dark:text-gray-400">{{ '@' . ($arsip->username ?? '-') }}</td>
                             <td class="hidden md:table-cell px-3 md:px-4 py-3 text-gray-600 dark:text-gray-400">{{ $arsip->email }}</td>
                             <td class="hidden lg:table-cell px-3 md:px-4 py-3 text-gray-600 dark:text-gray-400">{{ $arsip->instansi ?: '-' }}</td>
                             <td class="hidden lg:table-cell px-3 md:px-4 py-3 text-gray-600 dark:text-gray-400">{{ $arsip->nomor_telepon ?: '-' }}</td>
@@ -312,7 +317,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-3 text-center text-gray-500">Belum ada data arsip peserta.</td>
+                            <td colspan="8" class="px-4 py-3 text-center text-gray-500">Belum ada data arsip peserta.</td>
                         </tr>
                     @endforelse
                 </tbody>
