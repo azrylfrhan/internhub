@@ -68,8 +68,6 @@ Route::middleware(['auth', 'verified', 'role:magang,alumni'])->group(function ()
     })->name('magang.profile');
     Route::patch('/magang/profile', [ProfileController::class, 'updateMagang'])->name('magang.profile.update');
     Route::put('/magang/profile/password', [ProfileController::class, 'updatePassword'])->name('magang.profile.password.update');
-
-    Route::post('/magang/permissions', [PermissionController::class, 'store'])->name('magang.permissions.store');
 });
 
 // Presensi routes - Available to authenticated users
@@ -119,7 +117,7 @@ Route::middleware(['auth', 'verified', 'role:admin,mentor'])->group(function () 
     Route::get('/api/logbook/{id}', [PresensiController::class, 'getLogbookDetail'])->name('api.logbook.detail');
 
     Route::get('/admin/permissions', [PermissionController::class, 'index'])->name('admin.permissions.index');
-    Route::patch('/admin/permissions/{permission}/status', [PermissionController::class, 'updateStatus'])->name('admin.permissions.update-status');
+    Route::post('/admin/permissions', [PermissionController::class, 'store'])->name('admin.permissions.store');
 
 });
 

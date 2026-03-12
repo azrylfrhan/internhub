@@ -69,7 +69,7 @@
                     <svg class="h-5 w-5 {{ request()->routeIs('admin.permissions.*') ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"></path>
                     </svg>
-                    <span x-show="sidebarExpanded" x-transition.opacity.duration.150ms class="menu-item-text">Daftar Izin</span>
+                    <span x-show="sidebarExpanded" x-transition.opacity.duration.150ms class="menu-item-text">Input & Manajemen Izin</span>
                 </a>
             </li>
 

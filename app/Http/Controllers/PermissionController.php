@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Permission;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -16,10 +15,6 @@ class PermissionController extends Controller
     {
         $baseQuery = Permission::query()->with('user');
 
-        if ($request->filled('status')) {
-            $baseQuery->where('status', $request->string('status')->value());
-        }
-
         if ($request->filled('permission_type')) {
             $baseQuery->where('permission_type', $request->string('permission_type')->value());
         }
@@ -28,6 +23,7 @@ class PermissionController extends Controller
             $keyword = trim((string) $request->string('q'));
             $baseQuery->whereHas('user', function ($query) use ($keyword) {
                 $query->where('name', 'like', "%{$keyword}%")
+                    ->orWhere('username', 'like', "%{$keyword}%")
                     ->orWhere('email', 'like', "%{$keyword}%");
             });
         }
@@ -38,33 +34,53 @@ class PermissionController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $participants = User::query()
+            ->whereIn('role', ['magang', 'alumni'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'username', 'email', 'role']);
+
         $summary = [
             'total' => Permission::count(),
-            'pending' => Permission::where('status', 'pending')->count(),
-            'approved' => Permission::where('status', 'approved')->count(),
-            'rejected' => Permission::where('status', 'rejected')->count(),
+            'sakit' => Permission::where('permission_type', 'sakit')->count(),
+            'lainnya' => Permission::where('permission_type', 'lainnya')->count(),
         ];
 
-        return view('admin.permissions.index', compact('permissions', 'summary'));
+        return view('admin.permissions.index', compact('permissions', 'summary', 'participants'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'user_id' => ['required', 'integer', Rule::exists('users', 'id')],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'permission_type' => ['required', Rule::in(['sakit', 'lainnya'])],
             'reason' => ['nullable', 'string', 'max:1500', 'required_if:permission_type,lainnya'],
-            'medical_document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:3072', 'required_if:permission_type,sakit'],
+            'medical_document' => ['nullable', 'file', 'mimes:pdf', 'max:3072', 'required_if:permission_type,sakit'],
         ], [
-            'permission_type.required' => 'Pilih alasan tidak masuk terlebih dahulu.',
-            'reason.required_if' => 'Tuliskan alasan izin pada kolom keterangan.',
-            'medical_document.required_if' => 'Dokumen izin sakit wajib diunggah.',
-            'medical_document.mimes' => 'Dokumen izin sakit harus berupa PDF, JPG, JPEG, atau PNG.',
+            'user_id.required' => 'Pilih peserta magang terlebih dahulu.',
+            'user_id.exists' => 'Peserta magang yang dipilih tidak valid.',
+            'start_date.required' => 'Tanggal mulai izin wajib diisi.',
+            'end_date.required' => 'Tanggal akhir izin wajib diisi.',
+            'end_date.after_or_equal' => 'Tanggal akhir izin harus sama atau setelah tanggal mulai.',
+            'permission_type.required' => 'Pilih jenis izin terlebih dahulu.',
+            'reason.required_if' => 'Alasan izin wajib diisi untuk jenis alasan lain.',
+            'medical_document.required_if' => 'Dokumen izin sakit wajib diunggah dalam format PDF.',
+            'medical_document.mimes' => 'Dokumen izin sakit harus berupa file PDF.',
             'medical_document.max' => 'Ukuran dokumen izin sakit maksimal 3 MB.',
         ]);
 
-        $today = Carbon::today('Asia/Makassar')->toDateString();
-        $attachmentPath = null;
+        $participant = User::query()
+            ->whereIn('role', ['magang', 'alumni'])
+            ->find($validated['user_id']);
 
+        if (!$participant) {
+            return redirect()
+                ->route('admin.permissions.index')
+                ->with('error', 'Hanya akun peserta magang yang dapat diinputkan izin.');
+        }
+
+        $attachmentPath = null;
         if ($request->hasFile('medical_document')) {
             $attachmentPath = $request->file('medical_document')->store('permission-documents', 'public');
         }
@@ -74,42 +90,17 @@ class PermissionController extends Controller
             : trim((string) $validated['reason']);
 
         Permission::create([
-            'user_id' => Auth::id(),
-            'start_date' => $today,
-            'end_date' => $today,
+            'user_id' => $participant->id,
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
             'permission_type' => $validated['permission_type'],
             'reason' => $reason,
             'attachment_path' => $attachmentPath,
-            'status' => 'pending',
+            'status' => 'approved',
         ]);
-
-        return redirect()
-            ->route('magang.attendance')
-            ->with('success', 'Pengajuan izin berhasil dikirim dan menunggu persetujuan mentor/admin.');
-    }
-
-    public function updateStatus(Request $request, Permission $permission): RedirectResponse
-    {
-        $validated = $request->validate([
-            'status' => ['required', Rule::in(['approved', 'rejected'])],
-        ]);
-
-        if ($permission->status !== 'pending') {
-            return redirect()
-                ->route('admin.permissions.index')
-                ->with('error', 'Pengajuan ini sudah diproses sebelumnya.');
-        }
-
-        $permission->update([
-            'status' => $validated['status'],
-        ]);
-
-        $message = $validated['status'] === 'approved'
-            ? 'Pengajuan izin berhasil disetujui.'
-            : 'Pengajuan izin berhasil ditolak.';
 
         return redirect()
             ->route('admin.permissions.index')
-            ->with('success', $message);
+            ->with('success', 'Data izin berhasil diinput dan langsung disetujui.');
     }
 }
