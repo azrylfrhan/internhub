@@ -53,7 +53,7 @@
                 <section class="hidden lg:block">
                     <div class="login-hero-card rounded-3xl border border-blue-100 backdrop-blur p-10 shadow-xl">
                         <div class="flex items-center gap-4 mb-6">
-                            <div class="logo-badge h-14 w-14 rounded-2xl bg-blue-100 flex items-center justify-center">
+                            <div class="logo-badge h-14 w-14 rounded-2xl bg-slate-100 flex items-center justify-center">
                                 <img src="/logo-bps.png" alt="Logo BPS" class="h-9 w-auto" loading="lazy" style="max-width:38px;object-fit:contain;" />
                             </div>
                             <div>
