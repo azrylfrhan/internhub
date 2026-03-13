@@ -16,7 +16,7 @@ class SettingSeeder extends Seeder
             'jam_masuk_senin_kamis' => '07:30',
             'jam_pulang_senin_kamis' => '16:00',
             'jam_masuk_jumat' => '07:30',
-            'jam_pulang_jumat' => '16:00',
+            'jam_pulang_jumat' => '16:30',
             'office_latitude' => '1.46759',
             'office_longitude' => '124.84542',
             'max_distance_meters' => '500',

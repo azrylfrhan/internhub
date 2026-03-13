@@ -18,7 +18,7 @@ class AdminUserSeeder extends Seeder
             ['email' => 'admin@bps.go.id'],
             [
                 'name' => 'Admin BPS',
-                'username' => 'admin_bps',
+                'username' => 'admin',
                 'password' => Hash::make('password'),
                 'role' => 'admin',
                 'email_verified_at' => now(),
