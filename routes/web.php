@@ -1,8 +1,7 @@
 
 <?php
 
-use App\Http\Controllers\Auth\AdminLoginController;
-use App\Http\Controllers\Auth\MagangLoginController;
+use App\Http\Controllers\Auth\UnifiedLoginController;
 use App\Http\Controllers\AdminManagementController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\LogbookController;
@@ -15,7 +14,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('landing');
+    if (Auth::check()) {
+        $role = Auth::user()->role;
+        if (in_array($role, ['admin', 'mentor'])) {
+            return redirect()->route('dashboard');
+        }
+        return redirect()->route('magang.attendance');
+    }
+    return view('auth.login');
 })->name('home');
 
 // Graceful fallback for GET /logout (avoid 405 Method Not Allowed)
@@ -28,19 +34,14 @@ Route::get('/logout', function (Request $request) {
     return redirect()->route('login')->with('status', 'Anda telah keluar. Silakan login kembali.');
 })->name('logout.get');
 
-// Separate login routes for different roles
+// Unified login — single entry point for all roles
 Route::middleware('guest')->group(function () {
-    Route::get('/admin/login', [AdminLoginController::class, 'showLoginForm'])->name('admin.login');
-    Route::post('/admin/login', [AdminLoginController::class, 'login']);
+    Route::get('/login', [UnifiedLoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [UnifiedLoginController::class, 'login']);
 
-    Route::get('/magang/login', [MagangLoginController::class, 'showLoginForm'])->name('magang.login');
-    Route::post('/magang/login', [MagangLoginController::class, 'login']);
-
-    // Universal fallback login route for auth redirects
-    Route::get('/login', function () {
-        // Redirect ke login sesuai preferensi, default ke admin
-        return redirect()->route('admin.login');
-    })->name('login');
+    // Keep old URL aliases so any existing bookmarks still work
+    Route::get('/admin/login', [UnifiedLoginController::class, 'showLoginForm'])->name('admin.login');
+    Route::get('/magang/login', [UnifiedLoginController::class, 'showLoginForm'])->name('magang.login');
 });
 
 // Admin/Mentor Dashboard - Protected by role middleware

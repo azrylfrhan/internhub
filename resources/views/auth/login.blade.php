@@ -1,181 +1,217 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    <!-- Role Selection -->
-    <div class="mb-6">
-            <x-input-label for="password" :value="__('Password')" />
-            <div class="relative">
-                <x-text-input id="password" class="block mt-1 w-full pr-10"
-                    type="password"
-                    name="password"
-                    required autocomplete="current-password" />
-                <button type="button" onclick="togglePassword('password', this)" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-700 focus:outline-none">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path id="eye-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </button>
-            </div>
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                    </div>
-                    <h3 class="font-semibold text-gray-900">Anak Magang</h3>
-                    <p class="text-sm text-gray-600">Untuk peserta program InternHub</p>
-                </div>
-            </div>
-
-            <div class="role-option border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-500 transition-colors" data-role="mentor">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                        </svg>
-                    </div>
-                    <h3 class="font-semibold text-gray-900">Mentor/Admin</h3>
-                    <p class="text-sm text-gray-600">Untuk pembimbing dan administrator</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <form id="loginForm" method="POST" action="{{ route('login') }}" class="hidden">
-        @csrf
-
-        <!-- Selected Role (Hidden) -->
-        <input type="hidden" name="role" id="selectedRole" value="magang">
-
-        <!-- Username -->
-        <div>
-            <x-input-label for="username" :value="__('Username')" />
-            <x-text-input id="username" class="block mt-1 w-full" type="text" name="username" :value="old('username')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('username')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <button type="button" onclick="goBack()" class="text-sm text-gray-600 hover:text-gray-900">
-                ← Kembali
-            </button>
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-        </div>
-        <div class="mt-6">
-            <button id="loginBtn" type="submit" class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                <span id="loginBtnText">Login</span>
-                <svg id="loginSpinner" class="hidden animate-spin ml-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-            </button>
-        </div>
-
-<script>
-function togglePassword(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const icon = btn.querySelector('svg path');
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.setAttribute('d', 'M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-4-9-7s4-7 9-7 9 4 9 7c0 1.306-.835 2.417-2.125 3.825M15 12a3 3 0 11-6 0 3 3 0 016 0zm-2.25 6.825L21 21M3 3l18 18');
-    } else {
-        input.type = 'password';
-        icon.setAttribute('d', 'M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0a9 9 0 11-18 0 9 9 0 0118 0z');
-    }
-}
-
-// Loading animation on login
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('loginForm');
-    if (form) {
-        form.addEventListener('submit', function() {
-            const btn = document.getElementById('loginBtn');
-            const text = document.getElementById('loginBtnText');
-            const spinner = document.getElementById('loginSpinner');
-            btn.disabled = true;
-            text.textContent = 'Loading...';
-            spinner.classList.remove('hidden');
-        });
-    }
-});
-</script>
-        <div class="flex items-center justify-between mt-6">
-            <button type="button" onclick="goBack()" class="text-sm text-gray-600 hover:text-gray-900">
-                ← Kembali
-            </button>
-
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button>
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
-
-    <script>
-        // Role selection functionality
-        const roleOptions = document.querySelectorAll('.role-option');
-        const loginForm = document.getElementById('loginForm');
-        const selectedRoleInput = document.getElementById('selectedRole');
-
-        roleOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                // Remove active class from all options
-                roleOptions.forEach(opt => {
-                    opt.classList.remove('border-blue-500', 'border-green-500');
-                    opt.classList.add('border-gray-200');
-                });
-
-                // Add active class to selected option
-                const role = this.dataset.role;
-                if (role === 'magang') {
-                    this.classList.remove('border-gray-200');
-                    this.classList.add('border-blue-500');
-                } else {
-                    this.classList.remove('border-gray-200');
-                    this.classList.add('border-green-500');
-                }
-
-                // Set selected role and show form
-                selectedRoleInput.value = role;
-                setTimeout(() => {
-                    document.querySelector('.role-option').parentElement.parentElement.style.display = 'none';
-                    loginForm.classList.remove('hidden');
-                    loginForm.classList.add('block');
-                }, 300);
-            });
-        });
-
-        function goBack() {
-            loginForm.classList.remove('block');
-            loginForm.classList.add('hidden');
-            document.querySelector('.role-option').parentElement.parentElement.style.display = 'block';
-
-            // Reset selection
-            roleOptions.forEach(opt => {
-                opt.classList.remove('border-blue-500', 'border-green-500');
-                opt.classList.add('border-gray-200');
-            });
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Login - InternHub</title>
+    <link rel="icon" type="image/png" href="/logo-bps.png" />
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        .login-hero-card {
+            background-image: linear-gradient(160deg, rgba(255,255,255,0.92), rgba(239,246,255,0.82));
+            box-shadow: 0 20px 50px rgba(30, 64, 175, 0.14);
         }
 
-        // Auto-select magang role on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            roleOptions[0].click();
+        .logo-badge {
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.22);
+        }
+
+        .feature-item {
+            transition: transform 180ms ease, background-color 180ms ease;
+        }
+
+        .feature-item:hover {
+            transform: translateX(4px);
+            background-color: rgba(239, 246, 255, 0.7);
+        }
+
+        .login-card {
+            box-shadow: 0 22px 60px rgba(15, 23, 42, 0.1);
+        }
+
+        .field-input {
+            transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+
+        .field-input:hover {
+            background-color: #f8fafc;
+        }
+
+        .login-btn {
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased bg-gradient-to-br from-blue-50 via-white to-slate-100 text-gray-900 min-h-screen">
+    <main class="min-h-screen w-full flex items-center py-10">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+
+                <section class="hidden lg:block">
+                    <div class="login-hero-card rounded-3xl border border-blue-100 backdrop-blur p-10 shadow-xl">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="logo-badge h-14 w-14 rounded-2xl bg-blue-100 flex items-center justify-center">
+                                <img src="/logo-bps.png" alt="Logo BPS" class="h-9 w-auto" loading="lazy" style="max-width:38px;object-fit:contain;" />
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold uppercase tracking-wide text-blue-700">InternHub</p>
+                                <h1 class="text-3xl font-bold text-gray-900">Portal Magang BPS Sulut</h1>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 leading-relaxed mb-6">
+                            Sistem terpadu untuk mengelola presensi, logbook, dan pemantauan kegiatan magang di lingkungan Badan Pusat Statistik Provinsi Sulawesi Utara.
+                        </p>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="feature-item rounded-xl px-2 py-1.5 -mx-2 flex items-start gap-3">
+                                <span class="mt-2 h-2.5 w-2.5 rounded-full bg-blue-500 shrink-0"></span>
+                                <span>Peserta magang - catat absensi dan logbook harian.</span>
+                            </li>
+                            <li class="feature-item rounded-xl px-2 py-1.5 -mx-2 flex items-start gap-3">
+                                <span class="mt-2 h-2.5 w-2.5 rounded-full bg-indigo-500 shrink-0"></span>
+                                <span>Admin dan Mentor - kelola data, pantau progres peserta.</span>
+                            </li>
+                            <li class="feature-item rounded-xl px-2 py-1.5 -mx-2 flex items-start gap-3">
+                                <span class="mt-2 h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                <span>Sistem otomatis mengarahkan Anda sesuai peran setelah login.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="login-card bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8 max-w-xl w-full mx-auto">
+
+                        <div class="text-center mb-6">
+                            <div class="logo-badge mx-auto h-14 w-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-4">
+                                <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 7a2 2 0 012 2m0 0a2 2 0 012 2m-2-2a2 2 0 00-2 2m-4-6a2 2 0 012 2m0 0a2 2 0 012 2m-2-2a2 2 0 00-2 2M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m6 0a1 1 0 001-1V10m-9 3h4m-4 4h4" />
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-900">Masuk ke InternHub</h2>
+                            <p class="text-gray-500 mt-1 text-sm">Gunakan akun yang telah diberikan oleh administrator</p>
+                        </div>
+
+                        @if (session('status'))
+                            <div class="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
+                                {{ session('status') }}
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('login') }}" class="space-y-5" id="loginForm">
+                            @csrf
+
+                            <div>
+                                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                                <input
+                                    id="username"
+                                    name="username"
+                                    type="text"
+                                    autocomplete="username"
+                                    value="{{ old('username') }}"
+                                    required
+                                    autofocus
+                                    class="field-input w-full px-4 py-3 border {{ $errors->has('username') ? 'border-red-400 bg-red-50' : 'border-gray-300' }} text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Masukkan username"
+                                />
+                                @error('username')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <div class="relative">
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        autocomplete="current-password"
+                                        required
+                                        class="field-input w-full px-4 py-3 pr-11 border {{ $errors->has('password') ? 'border-red-400 bg-red-50' : 'border-gray-300' }} text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Masukkan password"
+                                    />
+                                    <button
+                                        type="button"
+                                        onclick="togglePassword('password', this)"
+                                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-700"
+                                        tabindex="-1"
+                                    >
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                @error('password')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                    <input
+                                        id="remember"
+                                        name="remember"
+                                        type="checkbox"
+                                        class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    Ingat saya
+                                </label>
+                            </div>
+
+                            <button
+                                id="loginBtn"
+                                type="submit"
+                                class="login-btn w-full min-h-[48px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition flex items-center justify-center gap-2"
+                            >
+                                <span id="loginBtnText">Masuk</span>
+                                <svg id="loginSpinner" class="hidden animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                </svg>
+                            </button>
+                        </form>
+
+                        <p class="text-xs text-gray-400 text-center mt-5">
+                            Sistem akan mengarahkan Anda ke halaman yang sesuai berdasarkan peran akun Anda.
+                        </p>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const path = btn.querySelector('svg path');
+            if (input.type === 'password') {
+                input.type = 'text';
+                path.setAttribute('d', 'M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-7s4.477-7 10-7c1.306 0 2.57.25 3.75.688M15 12a3 3 0 11-6 0 3 3 0 016 0zm3.536-5.536L21 3m0 0l-2.464 2.464M21 3l-18 18');
+            } else {
+                input.type = 'password';
+                path.setAttribute('d', 'M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0a9 9 0 11-18 0 9 9 0 0118 0z');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('loginForm');
+            if (!form) return;
+            form.addEventListener('submit', function () {
+                const btn = document.getElementById('loginBtn');
+                const text = document.getElementById('loginBtnText');
+                const spinner = document.getElementById('loginSpinner');
+                btn.disabled = true;
+                btn.classList.add('opacity-60', 'pointer-events-none');
+                text.textContent = 'Memproses...';
+                spinner.classList.remove('hidden');
+            });
         });
     </script>
-</x-guest-layout>
+</body>
+</html>

@@ -38,11 +38,8 @@
                     </p>
 
                     <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                        <a href="{{ route('magang.login') }}" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white hover:bg-blue-700 transition shadow-sm min-h-[48px]">
-                            Masuk Sebagai Peserta Magang
-                        </a>
-                        <a href="{{ route('admin.login') }}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 hover:bg-slate-100 transition min-h-[48px]">
-                            Masuk Sebagai Admin/Mentor
+                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white hover:bg-blue-700 transition shadow-sm min-h-[48px]">
+                            Masuk ke InternHub
                         </a>
                     </div>
                 </div>
