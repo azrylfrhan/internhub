@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $today = now()->toDateString();
+    $today = \Carbon\Carbon::today('Asia/Makassar')->toDateString();
 
     $pesertaList = \App\Models\User::where('role', 'magang')
         ->orderBy('name')
